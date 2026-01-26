@@ -1,0 +1,14 @@
+export { Dashboard } from './Dashboard';
+export { LoginPage } from './Login';
+export { ClientsPage } from './Clients';
+export { ClientDetailPage } from './ClientDetail';
+export { ProspectsPage } from './Prospects';
+export { ProspectDetailPage } from './ProspectDetail';
+export { PipelinePage } from './Pipeline';
+export { VehiclesPage } from './Vehicles';
+export { PhotosPage } from './Photos';
+export { AnnoncesPage } from './Annonces';
+export { FacturesPage } from './Factures';
+export { StatisticsPage } from './Statistics';
+export { TasksPage } from './Tasks';
+export { SettingsPage } from './Settings';

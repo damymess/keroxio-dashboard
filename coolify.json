@@ -1,6 +1,6 @@
 {
     "subdomain":  "dashboard.keroxio.fr",
     "healthcheck":  "/health",
-    "port":  8000,
+    "port":  80,
     "name":  "keroxio-dashboard"
 }

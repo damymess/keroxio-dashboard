@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm install && chmod -R +x node_modules/.bin
 
 # Copy source and build
 COPY . .

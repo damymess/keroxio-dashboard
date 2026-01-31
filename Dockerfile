@@ -8,11 +8,13 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm install && chmod -R +x node_modules/.bin
+RUN npm install
 
-# Copy source and build
+# Copy source
 COPY . .
-RUN npm run build
+
+# Fix permissions and build
+RUN chmod -R +x node_modules/.bin && npm run build
 
 # ===========================================
 # Production stage with nginx

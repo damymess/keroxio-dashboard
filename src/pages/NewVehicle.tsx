@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Car,
@@ -20,6 +20,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { cn } from '../lib/utils';
+import { imageApi, type Background, type ProcessResult } from '../lib/imageApi';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.keroxio.fr';
 
 const steps = [
   { id: 1, icon: Car, label: 'Plaque', desc: 'Identification du véhicule' },
@@ -29,67 +32,25 @@ const steps = [
   { id: 5, icon: ExternalLink, label: 'Publier', desc: 'Diffusion' },
 ];
 
-// Mock vehicle data after plate detection
-const mockVehicleInfo = {
-  plaque: 'AB-123-CD',
-  marque: 'Peugeot',
-  modele: '308',
-  version: 'GT Line',
-  annee: 2020,
-  carburant: 'Diesel',
-  boite: 'Automatique',
-  puissance: '130 ch',
-  couleur: 'Gris Artense',
-};
+interface VehicleInfo {
+  plaque: string;
+  marque: string;
+  modele: string;
+  version?: string;
+  annee?: number;
+  carburant?: string;
+  boite?: string;
+  puissance?: string;
+  couleur?: string;
+}
 
-// Mock price estimation
-const mockPriceEstimate = {
-  prix_min: 14500,
-  prix_moyen: 15900,
-  prix_max: 17200,
-  source: 'Argus + LeBonCoin',
-  comparables: 42,
-};
-
-// Mock generated ad
-const mockGeneratedAd = {
-  titre: 'Peugeot 308 GT Line 1.5 BlueHDi 130 - Automatique - 2020',
-  description: `🚗 Peugeot 308 GT Line en excellent état !
-
-✅ Points forts :
-• Boîte automatique EAT8 très agréable
-• Finition GT Line avec pack sport
-• Faible consommation diesel
-• Entretien à jour chez Peugeot
-
-📋 Caractéristiques :
-• Année : 2020
-• Kilométrage : 45 000 km
-• Carburant : Diesel
-• Puissance : 130 ch
-• Couleur : Gris Artense
-
-💎 Équipements :
-• GPS connecté 3D
-• Caméra de recul
-• Régulateur adaptatif
-• Sièges chauffants
-• Toit panoramique
-
-🔧 Historique complet disponible. Contrôle technique OK.
-
-📞 Contactez-moi pour plus d'informations ou pour organiser un essai !`,
-};
-
-// Mock backgrounds
-const backgrounds = [
-  { id: 'showroom_led', name: 'Showroom LED' },
-  { id: 'garage_dark', name: 'Garage Dark' },
-  { id: 'neon_cyberpunk', name: 'Néon Cyberpunk' },
-  { id: 'garage_concrete', name: 'Garage Béton' },
-  { id: 'showroom_blue', name: 'Showroom Blue' },
-  { id: 'tunnel_led', name: 'Tunnel LED' },
-];
+interface PriceEstimate {
+  prix_min: number;
+  prix_moyen: number;
+  prix_max: number;
+  source?: string;
+  comparables?: number;
+}
 
 export function NewVehiclePage() {
   const navigate = useNavigate();
@@ -99,34 +60,87 @@ export function NewVehiclePage() {
   // Step 1: Plate
   const [plateImage, setPlateImage] = useState<File | null>(null);
   const [plateDetected, setPlateDetected] = useState(false);
-  const [vehicleInfo, setVehicleInfo] = useState<typeof mockVehicleInfo | null>(null);
+  const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo | null>(null);
   
   // Step 2: Photos
   const [photos, setPhotos] = useState<File[]>([]);
+  const [backgrounds, setBackgrounds] = useState<Background[]>([]);
   const [selectedBg, setSelectedBg] = useState('showroom_led');
+  const [processedPhotos, setProcessedPhotos] = useState<ProcessResult[]>([]);
   const [photosProcessed, setPhotosProcessed] = useState(false);
   
   // Step 3: Price
-  const [priceEstimate, setPriceEstimate] = useState<typeof mockPriceEstimate | null>(null);
+  const [priceEstimate, setPriceEstimate] = useState<PriceEstimate | null>(null);
   const [selectedPrice, setSelectedPrice] = useState<number | null>(null);
   const [kilometrage, setKilometrage] = useState('45000');
   
   // Step 4: Ad
-  const [generatedAd, setGeneratedAd] = useState<typeof mockGeneratedAd | null>(null);
+  const [generatedAd, setGeneratedAd] = useState<{ titre: string; description: string } | null>(null);
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDesc, setEditedDesc] = useState('');
 
-  // Handle plate image
+  // Load backgrounds from API
+  useEffect(() => {
+    imageApi.getBackgrounds()
+      .then(data => {
+        setBackgrounds(data.backgrounds);
+        if (data.backgrounds.length > 0) {
+          setSelectedBg(data.backgrounds[0].name);
+        }
+      })
+      .catch(err => console.error('Failed to load backgrounds:', err));
+  }, []);
+
+  // Handle plate image - call immat API
   const handlePlateUpload = useCallback(async (file: File) => {
     setPlateImage(file);
     setLoading(true);
     
-    // Simulate OCR + SIV API
-    await new Promise(r => setTimeout(r, 2000));
-    
-    setVehicleInfo(mockVehicleInfo);
-    setPlateDetected(true);
-    setLoading(false);
+    try {
+      // For now, extract plate from filename or use manual input
+      // TODO: Integrate OCR API when available
+      const plaque = prompt('Entrez la plaque d\'immatriculation:', 'AB-123-CD');
+      if (!plaque) {
+        setLoading(false);
+        return;
+      }
+
+      // Call immat API to validate and get vehicle info
+      const response = await fetch(`${API_URL}/immat/${plaque}/validate`);
+      if (response.ok) {
+        const data = await response.json();
+        setVehicleInfo({
+          plaque: plaque.toUpperCase(),
+          marque: data.marque || 'Inconnue',
+          modele: data.modele || 'Inconnu',
+          version: data.version,
+          annee: data.annee,
+          carburant: data.carburant,
+          boite: data.boite,
+          puissance: data.puissance,
+          couleur: data.couleur,
+        });
+      } else {
+        // Fallback with manual data
+        setVehicleInfo({
+          plaque: plaque.toUpperCase(),
+          marque: 'À compléter',
+          modele: 'À compléter',
+        });
+      }
+      setPlateDetected(true);
+    } catch (err) {
+      console.error('Plate validation failed:', err);
+      // Allow manual entry
+      setVehicleInfo({
+        plaque: 'MANUAL',
+        marque: 'À compléter',
+        modele: 'À compléter',
+      });
+      setPlateDetected(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   // Handle photos
@@ -134,31 +148,140 @@ export function NewVehiclePage() {
     setPhotos(Array.from(files));
   }, []);
 
-  // Process photos
+  // Process photos using real API
   const processPhotos = async () => {
+    if (photos.length === 0) return;
+    
     setLoading(true);
-    await new Promise(r => setTimeout(r, 3000));
-    setPhotosProcessed(true);
-    setLoading(false);
+    const results: ProcessResult[] = [];
+    
+    try {
+      for (const photo of photos) {
+        const result = await imageApi.processImage(photo, selectedBg);
+        results.push(result);
+      }
+      setProcessedPhotos(results);
+      setPhotosProcessed(true);
+    } catch (err) {
+      console.error('Photo processing failed:', err);
+      alert('Erreur lors du traitement des photos');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Get price estimate
+  // Get price estimate from pricing API
   const getEstimate = async () => {
+    if (!vehicleInfo) return;
+    
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1500));
-    setPriceEstimate(mockPriceEstimate);
-    setSelectedPrice(mockPriceEstimate.prix_moyen);
-    setLoading(false);
+    try {
+      const response = await fetch(`${API_URL}/pricing/estimate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          marque: vehicleInfo.marque,
+          modele: vehicleInfo.modele,
+          annee: vehicleInfo.annee || new Date().getFullYear(),
+          kilometrage: parseInt(kilometrage) || 50000,
+          carburant: vehicleInfo.carburant || 'essence',
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const estimate: PriceEstimate = {
+          prix_min: data.prix_min || data.prix * 0.9,
+          prix_moyen: data.prix || data.prix_moyen,
+          prix_max: data.prix_max || data.prix * 1.1,
+          source: 'Argus + Marché',
+          comparables: data.comparables || 0,
+        };
+        setPriceEstimate(estimate);
+        setSelectedPrice(estimate.prix_moyen);
+      } else {
+        // Fallback estimation
+        setPriceEstimate({
+          prix_min: 10000,
+          prix_moyen: 12000,
+          prix_max: 14000,
+          source: 'Estimation',
+        });
+        setSelectedPrice(12000);
+      }
+    } catch (err) {
+      console.error('Price estimation failed:', err);
+      setPriceEstimate({
+        prix_min: 10000,
+        prix_moyen: 12000,
+        prix_max: 14000,
+        source: 'Estimation',
+      });
+      setSelectedPrice(12000);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Generate ad
+  // Generate ad using annonce API
   const generateAd = async () => {
+    if (!vehicleInfo || !selectedPrice) return;
+    
     setLoading(true);
-    await new Promise(r => setTimeout(r, 2000));
-    setGeneratedAd(mockGeneratedAd);
-    setEditedTitle(mockGeneratedAd.titre);
-    setEditedDesc(mockGeneratedAd.description);
-    setLoading(false);
+    try {
+      const response = await fetch(`https://annonce.keroxio.fr/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          marque: vehicleInfo.marque,
+          modele: vehicleInfo.modele,
+          version: vehicleInfo.version,
+          annee: vehicleInfo.annee,
+          kilometrage: parseInt(kilometrage),
+          carburant: vehicleInfo.carburant,
+          boite: vehicleInfo.boite,
+          prix: selectedPrice,
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setGeneratedAd({
+          titre: data.titre || `${vehicleInfo.marque} ${vehicleInfo.modele} - ${vehicleInfo.annee}`,
+          description: data.description || data.texte || '',
+        });
+        setEditedTitle(data.titre || `${vehicleInfo.marque} ${vehicleInfo.modele} - ${vehicleInfo.annee}`);
+        setEditedDesc(data.description || data.texte || '');
+      } else {
+        // Fallback: generate simple ad
+        const titre = `${vehicleInfo.marque} ${vehicleInfo.modele}${vehicleInfo.version ? ' ' + vehicleInfo.version : ''} - ${vehicleInfo.annee || 'Année NC'}`;
+        const desc = `🚗 ${vehicleInfo.marque} ${vehicleInfo.modele} à vendre !
+
+📋 Caractéristiques :
+• Année : ${vehicleInfo.annee || 'NC'}
+• Kilométrage : ${parseInt(kilometrage).toLocaleString('fr-FR')} km
+• Carburant : ${vehicleInfo.carburant || 'NC'}
+• Boîte : ${vehicleInfo.boite || 'NC'}
+
+💰 Prix : ${selectedPrice.toLocaleString('fr-FR')} €
+
+📞 Contactez-moi pour plus d'informations !`;
+        
+        setGeneratedAd({ titre, description: desc });
+        setEditedTitle(titre);
+        setEditedDesc(desc);
+      }
+    } catch (err) {
+      console.error('Ad generation failed:', err);
+      // Fallback
+      const titre = `${vehicleInfo.marque} ${vehicleInfo.modele} - ${vehicleInfo.annee || ''}`;
+      const desc = `${vehicleInfo.marque} ${vehicleInfo.modele} à vendre. Prix: ${selectedPrice?.toLocaleString('fr-FR')} €`;
+      setGeneratedAd({ titre, description: desc });
+      setEditedTitle(titre);
+      setEditedDesc(desc);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const nextStep = () => {
@@ -352,16 +475,30 @@ export function NewVehiclePage() {
                   <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                     {backgrounds.map((bg) => (
                       <button
-                        key={bg.id}
-                        onClick={() => setSelectedBg(bg.id)}
+                        key={bg.name}
+                        onClick={() => setSelectedBg(bg.name)}
                         className={cn(
-                          'aspect-video rounded-lg border-2 p-2 text-xs text-center transition-all',
-                          selectedBg === bg.id
-                            ? 'border-primary bg-primary/10'
+                          'relative aspect-video rounded-lg border-2 overflow-hidden transition-all',
+                          selectedBg === bg.name
+                            ? 'border-primary ring-2 ring-primary/20'
                             : 'border-border hover:border-primary/50'
                         )}
                       >
-                        {bg.name}
+                        <img
+                          src={imageApi.getBackgroundPreviewUrl(bg.name)}
+                          alt={bg.name}
+                          className="w-full h-full object-cover"
+                        />
+                        {selectedBg === bg.name && (
+                          <div className="absolute top-1 right-1 p-0.5 rounded-full bg-primary">
+                            <Check className="h-3 w-3 text-white" />
+                          </div>
+                        )}
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-1">
+                          <p className="text-[10px] text-white font-medium truncate">
+                            {bg.name}
+                          </p>
+                        </div>
                       </button>
                     ))}
                   </div>

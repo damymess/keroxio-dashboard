@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -15,48 +16,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { useAuthStore } from '../stores/authStore';
+import { vehicleApi, type Vehicle } from '../lib/vehicleApi';
 import { cn } from '../lib/utils';
 
-// Mock recent vehicles
-const recentVehicles = [
-  {
-    id: '1',
-    plaque: 'AB-123-CD',
-    marque: 'Peugeot',
-    modele: '308',
-    annee: 2020,
-    prix_estime: 15900,
-    status: 'published',
-    photos: 6,
-    created_at: '2026-02-01',
-  },
-  {
-    id: '2',
-    plaque: 'EF-456-GH',
-    marque: 'Renault',
-    modele: 'Clio',
-    annee: 2019,
-    prix_estime: 12500,
-    status: 'ready',
-    photos: 4,
-    created_at: '2026-01-30',
-  },
-  {
-    id: '3',
-    plaque: 'IJ-789-KL',
-    marque: 'BMW',
-    modele: 'Série 3',
-    annee: 2021,
-    prix_estime: 32000,
-    status: 'processing',
-    photos: 8,
-    created_at: '2026-01-28',
-  },
-];
-
-const statusConfig = {
-  processing: { label: 'En cours', color: 'bg-blue-100 text-blue-800', icon: Loader2 },
-  ready: { label: 'Prêt à publier', color: 'bg-amber-100 text-amber-800', icon: CheckCircle },
+const statusConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
+  draft: { label: 'Brouillon', color: 'bg-gray-100 text-gray-800', icon: Loader2 },
+  ready: { label: 'Prêt', color: 'bg-amber-100 text-amber-800', icon: CheckCircle },
   published: { label: 'Publié', color: 'bg-green-100 text-green-800', icon: ExternalLink },
 };
 
@@ -71,6 +36,24 @@ const steps = [
 export function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load recent vehicles
+  useEffect(() => {
+    vehicleApi.list()
+      .then(data => setVehicles(data.slice(0, 5))) // Show only 5 most recent
+      .catch(err => console.error('Failed to load vehicles:', err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Calculate stats
+  const stats = {
+    total: vehicles.length,
+    photos: vehicles.reduce((sum, v) => sum + (v.photos_traitees?.length || 0), 0),
+    published: vehicles.filter(v => v.status === 'published').length,
+    ready: vehicles.filter(v => v.status === 'ready').length,
+  };
 
   return (
     <div className="space-y-8">
@@ -127,25 +110,25 @@ export function Dashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-primary">3</p>
+            <p className="text-3xl font-bold text-primary">{stats.total}</p>
             <p className="text-sm text-muted-foreground">Véhicules</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-blue-500">18</p>
+            <p className="text-3xl font-bold text-blue-500">{stats.photos}</p>
             <p className="text-sm text-muted-foreground">Photos traitées</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-green-500">1</p>
-            <p className="text-sm text-muted-foreground">Annonces publiées</p>
+            <p className="text-3xl font-bold text-green-500">{stats.published}</p>
+            <p className="text-sm text-muted-foreground">Publiés</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-amber-500">2</p>
+            <p className="text-3xl font-bold text-amber-500">{stats.ready}</p>
             <p className="text-sm text-muted-foreground">Prêts à publier</p>
           </CardContent>
         </Card>
@@ -164,51 +147,66 @@ export function Dashboard() {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {recentVehicles.map((vehicle) => {
-              const status = statusConfig[vehicle.status as keyof typeof statusConfig];
-              const StatusIcon = status.icon;
-              
-              return (
-                <div
-                  key={vehicle.id}
-                  onClick={() => navigate(`/vehicles/${vehicle.id}`)}
-                  className="flex items-center justify-between p-4 rounded-lg bg-accent/50 hover:bg-accent transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="h-14 w-14 rounded-lg bg-muted flex items-center justify-center">
-                      <Car className="h-7 w-7 text-muted-foreground" />
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : vehicles.length > 0 ? (
+            <div className="space-y-3">
+              {vehicles.map((vehicle) => {
+                const status = statusConfig[vehicle.status] || statusConfig.draft;
+                const StatusIcon = status.icon;
+                
+                return (
+                  <div
+                    key={vehicle.id}
+                    onClick={() => navigate(`/vehicles/${vehicle.id}`)}
+                    className="flex items-center justify-between p-4 rounded-lg bg-accent/50 hover:bg-accent transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-14 w-14 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
+                        {vehicle.photos_traitees && vehicle.photos_traitees.length > 0 ? (
+                          <img
+                            src={vehicle.photos_traitees[0]}
+                            alt={`${vehicle.marque} ${vehicle.modele}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Car className="h-7 w-7 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-semibold">
+                          {vehicle.marque} {vehicle.modele}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {vehicle.plaque} {vehicle.annee && `• ${vehicle.annee}`}
+                          {vehicle.photos_traitees && ` • ${vehicle.photos_traitees.length} photos`}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold">
-                        {vehicle.marque} {vehicle.modele}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {vehicle.plaque} • {vehicle.annee} • {vehicle.photos} photos
-                      </p>
+                    <div className="text-right">
+                      {vehicle.prix_choisi && (
+                        <p className="font-bold text-lg">
+                          {vehicle.prix_choisi.toLocaleString('fr-FR')} €
+                        </p>
+                      )}
+                      <Badge className={cn('text-xs', status.color)}>
+                        <StatusIcon className={cn('h-3 w-3 mr-1', vehicle.status === 'draft' && 'animate-spin')} />
+                        {status.label}
+                      </Badge>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-lg">
-                      {vehicle.prix_estime.toLocaleString('fr-FR')} €
-                    </p>
-                    <Badge className={cn('text-xs', status.color)}>
-                      <StatusIcon className={cn('h-3 w-3 mr-1', vehicle.status === 'processing' && 'animate-spin')} />
-                      {status.label}
-                    </Badge>
-                  </div>
-                </div>
-              );
-            })}
-
-            {recentVehicles.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <Car className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="font-medium">Aucun véhicule</p>
-                <p className="text-sm">Commencez par ajouter votre premier véhicule</p>
-              </div>
-            )}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Car className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="font-medium">Aucun véhicule</p>
+              <p className="text-sm">Commencez par ajouter votre premier véhicule</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

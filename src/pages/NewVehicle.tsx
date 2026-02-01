@@ -21,6 +21,7 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { cn } from '../lib/utils';
 import { imageApi, type Background, type ProcessResult } from '../lib/imageApi';
+import { vehicleApi } from '../lib/vehicleApi';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://api.keroxio.fr';
 
@@ -56,6 +57,9 @@ export function NewVehiclePage() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  
+  // Vehicle ID (created after step 1)
+  const [vehicleId, setVehicleId] = useState<string | null>(null);
   
   // Step 1: Plate
   const [plateImage, setPlateImage] = useState<File | null>(null);
@@ -301,8 +305,59 @@ export function NewVehiclePage() {
     }
   };
 
-  const nextStep = () => {
-    if (currentStep < 5) setCurrentStep(currentStep + 1);
+  // Save to API when moving between steps
+  const nextStep = async () => {
+    if (currentStep >= 5) return;
+    
+    try {
+      // Step 1 → 2: Create vehicle
+      if (currentStep === 1 && vehicleInfo && !vehicleId) {
+        const created = await vehicleApi.create({
+          plaque: vehicleInfo.plaque,
+          marque: vehicleInfo.marque,
+          modele: vehicleInfo.modele,
+          version: vehicleInfo.version,
+          annee: vehicleInfo.annee,
+          carburant: vehicleInfo.carburant,
+          boite: vehicleInfo.boite,
+        });
+        setVehicleId(created.id);
+      }
+      
+      // Step 2 → 3: Update with photos
+      if (currentStep === 2 && vehicleId && processedPhotos.length > 0) {
+        await vehicleApi.update(vehicleId, {
+          photos_traitees: processedPhotos.map(p => p.final_url),
+          background_utilise: selectedBg,
+        });
+      }
+      
+      // Step 3 → 4: Update with price
+      if (currentStep === 3 && vehicleId && priceEstimate && selectedPrice) {
+        await vehicleApi.update(vehicleId, {
+          kilometrage: parseInt(kilometrage) || undefined,
+          prix_estime_min: priceEstimate.prix_min,
+          prix_estime_moyen: priceEstimate.prix_moyen,
+          prix_estime_max: priceEstimate.prix_max,
+          prix_choisi: selectedPrice,
+        });
+      }
+      
+      // Step 4 → 5: Update with ad
+      if (currentStep === 4 && vehicleId && editedTitle && editedDesc) {
+        await vehicleApi.update(vehicleId, {
+          annonce_titre: editedTitle,
+          annonce_description: editedDesc,
+          status: 'ready',
+        });
+      }
+      
+      setCurrentStep(currentStep + 1);
+    } catch (err) {
+      console.error('Failed to save vehicle:', err);
+      // Continue anyway, don't block the flow
+      setCurrentStep(currentStep + 1);
+    }
   };
 
   const prevStep = () => {
@@ -706,15 +761,23 @@ export function NewVehiclePage() {
 
               <div className="grid gap-4">
                 {[
-                  { name: 'LeBonCoin', url: 'https://www.leboncoin.fr/deposer-une-annonce', color: 'bg-orange-500' },
-                  { name: 'La Centrale', url: 'https://www.lacentrale.fr/deposer-annonce.html', color: 'bg-red-500' },
-                  { name: 'ParuVendu', url: 'https://www.paruvendu.fr/deposer-annonce', color: 'bg-blue-500' },
+                  { name: 'LeBonCoin', id: 'leboncoin', url: 'https://www.leboncoin.fr/deposer-une-annonce', color: 'bg-orange-500' },
+                  { name: 'La Centrale', id: 'lacentrale', url: 'https://www.lacentrale.fr/deposer-annonce.html', color: 'bg-red-500' },
+                  { name: 'ParuVendu', id: 'paruvendu', url: 'https://www.paruvendu.fr/deposer-annonce', color: 'bg-blue-500' },
                 ].map((platform) => (
                   <a
                     key={platform.name}
                     href={platform.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => {
+                      // Mark as published on this platform
+                      if (vehicleId) {
+                        vehicleApi.markPublished(vehicleId, platform.id).catch(console.error);
+                      }
+                      // Copy ad text to clipboard
+                      navigator.clipboard.writeText(`${editedTitle}\n\n${editedDesc}`);
+                    }}
                     className="flex items-center justify-between p-4 rounded-xl bg-accent hover:bg-accent/80 transition-colors"
                   >
                     <div className="flex items-center gap-3">
@@ -729,7 +792,7 @@ export function NewVehiclePage() {
               </div>
 
               <div className="text-center text-sm text-muted-foreground">
-                Vos photos et texte sont copiés, collez-les sur la plateforme
+                Cliquez sur une plateforme pour copier le texte et ouvrir le site
               </div>
 
               <Button className="w-full" size="lg" onClick={() => navigate('/vehicles')}>

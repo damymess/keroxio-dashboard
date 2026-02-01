@@ -1,0 +1,613 @@
+import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Car,
+  Image as ImageIcon,
+  Euro,
+  FileText,
+  ExternalLink,
+  ArrowLeft,
+  ArrowRight,
+  Upload,
+  Check,
+  Loader2,
+  Camera,
+  Sparkles,
+  Edit3,
+  Copy,
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { cn } from '../lib/utils';
+
+const steps = [
+  { id: 1, icon: Car, label: 'Plaque', desc: 'Identification du véhicule' },
+  { id: 2, icon: ImageIcon, label: 'Photos', desc: 'Traitement professionnel' },
+  { id: 3, icon: Euro, label: 'Prix', desc: 'Estimation du marché' },
+  { id: 4, icon: FileText, label: 'Annonce', desc: 'Texte optimisé' },
+  { id: 5, icon: ExternalLink, label: 'Publier', desc: 'Diffusion' },
+];
+
+// Mock vehicle data after plate detection
+const mockVehicleInfo = {
+  plaque: 'AB-123-CD',
+  marque: 'Peugeot',
+  modele: '308',
+  version: 'GT Line',
+  annee: 2020,
+  carburant: 'Diesel',
+  boite: 'Automatique',
+  puissance: '130 ch',
+  couleur: 'Gris Artense',
+};
+
+// Mock price estimation
+const mockPriceEstimate = {
+  prix_min: 14500,
+  prix_moyen: 15900,
+  prix_max: 17200,
+  source: 'Argus + LeBonCoin',
+  comparables: 42,
+};
+
+// Mock generated ad
+const mockGeneratedAd = {
+  titre: 'Peugeot 308 GT Line 1.5 BlueHDi 130 - Automatique - 2020',
+  description: `🚗 Peugeot 308 GT Line en excellent état !
+
+✅ Points forts :
+• Boîte automatique EAT8 très agréable
+• Finition GT Line avec pack sport
+• Faible consommation diesel
+• Entretien à jour chez Peugeot
+
+📋 Caractéristiques :
+• Année : 2020
+• Kilométrage : 45 000 km
+• Carburant : Diesel
+• Puissance : 130 ch
+• Couleur : Gris Artense
+
+💎 Équipements :
+• GPS connecté 3D
+• Caméra de recul
+• Régulateur adaptatif
+• Sièges chauffants
+• Toit panoramique
+
+🔧 Historique complet disponible. Contrôle technique OK.
+
+📞 Contactez-moi pour plus d'informations ou pour organiser un essai !`,
+};
+
+// Mock backgrounds
+const backgrounds = [
+  { id: 'showroom_led', name: 'Showroom LED' },
+  { id: 'garage_dark', name: 'Garage Dark' },
+  { id: 'neon_cyberpunk', name: 'Néon Cyberpunk' },
+  { id: 'garage_concrete', name: 'Garage Béton' },
+  { id: 'showroom_blue', name: 'Showroom Blue' },
+  { id: 'tunnel_led', name: 'Tunnel LED' },
+];
+
+export function NewVehiclePage() {
+  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  
+  // Step 1: Plate
+  const [plateImage, setPlateImage] = useState<File | null>(null);
+  const [plateDetected, setPlateDetected] = useState(false);
+  const [vehicleInfo, setVehicleInfo] = useState<typeof mockVehicleInfo | null>(null);
+  
+  // Step 2: Photos
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [selectedBg, setSelectedBg] = useState('showroom_led');
+  const [photosProcessed, setPhotosProcessed] = useState(false);
+  
+  // Step 3: Price
+  const [priceEstimate, setPriceEstimate] = useState<typeof mockPriceEstimate | null>(null);
+  const [selectedPrice, setSelectedPrice] = useState<number | null>(null);
+  const [kilometrage, setKilometrage] = useState('45000');
+  
+  // Step 4: Ad
+  const [generatedAd, setGeneratedAd] = useState<typeof mockGeneratedAd | null>(null);
+  const [editedTitle, setEditedTitle] = useState('');
+  const [editedDesc, setEditedDesc] = useState('');
+
+  // Handle plate image
+  const handlePlateUpload = useCallback(async (file: File) => {
+    setPlateImage(file);
+    setLoading(true);
+    
+    // Simulate OCR + SIV API
+    await new Promise(r => setTimeout(r, 2000));
+    
+    setVehicleInfo(mockVehicleInfo);
+    setPlateDetected(true);
+    setLoading(false);
+  }, []);
+
+  // Handle photos
+  const handlePhotosUpload = useCallback((files: FileList) => {
+    setPhotos(Array.from(files));
+  }, []);
+
+  // Process photos
+  const processPhotos = async () => {
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 3000));
+    setPhotosProcessed(true);
+    setLoading(false);
+  };
+
+  // Get price estimate
+  const getEstimate = async () => {
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 1500));
+    setPriceEstimate(mockPriceEstimate);
+    setSelectedPrice(mockPriceEstimate.prix_moyen);
+    setLoading(false);
+  };
+
+  // Generate ad
+  const generateAd = async () => {
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 2000));
+    setGeneratedAd(mockGeneratedAd);
+    setEditedTitle(mockGeneratedAd.titre);
+    setEditedDesc(mockGeneratedAd.description);
+    setLoading(false);
+  };
+
+  const nextStep = () => {
+    if (currentStep < 5) setCurrentStep(currentStep + 1);
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
+  };
+
+  const canProceed = () => {
+    switch (currentStep) {
+      case 1: return plateDetected && vehicleInfo;
+      case 2: return photosProcessed;
+      case 3: return selectedPrice !== null;
+      case 4: return editedTitle && editedDesc;
+      default: return true;
+    }
+  };
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold">Nouveau véhicule</h1>
+          <p className="text-muted-foreground">Étape {currentStep} sur 5</p>
+        </div>
+      </div>
+
+      {/* Progress Steps */}
+      <div className="flex items-center justify-between">
+        {steps.map((step, i) => (
+          <div key={step.id} className="flex items-center">
+            <div
+              className={cn(
+                'flex flex-col items-center',
+                currentStep >= step.id ? 'text-primary' : 'text-muted-foreground'
+              )}
+            >
+              <div
+                className={cn(
+                  'h-10 w-10 rounded-full flex items-center justify-center mb-1 transition-colors',
+                  currentStep > step.id
+                    ? 'bg-primary text-primary-foreground'
+                    : currentStep === step.id
+                    ? 'bg-primary/20 text-primary border-2 border-primary'
+                    : 'bg-muted'
+                )}
+              >
+                {currentStep > step.id ? (
+                  <Check className="h-5 w-5" />
+                ) : (
+                  <step.icon className="h-5 w-5" />
+                )}
+              </div>
+              <span className="text-xs font-medium hidden sm:block">{step.label}</span>
+            </div>
+            {i < steps.length - 1 && (
+              <div
+                className={cn(
+                  'h-1 w-8 sm:w-16 mx-2 rounded-full transition-colors',
+                  currentStep > step.id ? 'bg-primary' : 'bg-muted'
+                )}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Step Content */}
+      <Card>
+        <CardContent className="p-6">
+          {/* Step 1: Plate */}
+          {currentStep === 1 && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-xl font-semibold mb-2">Identification du véhicule</h2>
+                <p className="text-muted-foreground">
+                  Prenez une photo de la plaque d'immatriculation
+                </p>
+              </div>
+
+              {!plateDetected ? (
+                <label className="block cursor-pointer">
+                  <div className="border-2 border-dashed border-border rounded-xl p-12 text-center hover:border-primary/50 transition-colors">
+                    {loading ? (
+                      <div className="space-y-4">
+                        <Loader2 className="h-12 w-12 mx-auto text-primary animate-spin" />
+                        <p>Lecture de la plaque...</p>
+                      </div>
+                    ) : (
+                      <>
+                        <Camera className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="font-medium">Cliquez ou glissez une photo</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          La plaque sera lue automatiquement
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handlePlateUpload(e.target.files[0])}
+                  />
+                </label>
+              ) : vehicleInfo && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <Check className="h-5 w-5" />
+                    <span className="font-medium">Véhicule identifié</span>
+                  </div>
+                  
+                  <div className="p-4 rounded-xl bg-accent">
+                    <div className="text-center mb-4">
+                      <Badge className="text-lg px-4 py-1 bg-blue-600">
+                        {vehicleInfo.plaque}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div><span className="text-muted-foreground">Marque:</span> <strong>{vehicleInfo.marque}</strong></div>
+                      <div><span className="text-muted-foreground">Modèle:</span> <strong>{vehicleInfo.modele}</strong></div>
+                      <div><span className="text-muted-foreground">Version:</span> <strong>{vehicleInfo.version}</strong></div>
+                      <div><span className="text-muted-foreground">Année:</span> <strong>{vehicleInfo.annee}</strong></div>
+                      <div><span className="text-muted-foreground">Carburant:</span> <strong>{vehicleInfo.carburant}</strong></div>
+                      <div><span className="text-muted-foreground">Boîte:</span> <strong>{vehicleInfo.boite}</strong></div>
+                      <div><span className="text-muted-foreground">Puissance:</span> <strong>{vehicleInfo.puissance}</strong></div>
+                      <div><span className="text-muted-foreground">Couleur:</span> <strong>{vehicleInfo.couleur}</strong></div>
+                    </div>
+                  </div>
+                  
+                  <Button variant="outline" className="w-full" onClick={() => { setPlateDetected(false); setVehicleInfo(null); }}>
+                    Changer de véhicule
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 2: Photos */}
+          {currentStep === 2 && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-xl font-semibold mb-2">Photos du véhicule</h2>
+                <p className="text-muted-foreground">
+                  Ajoutez jusqu'à 10 photos, nous les transformons en images pro
+                </p>
+              </div>
+
+              {/* Upload zone */}
+              <label className="block cursor-pointer">
+                <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary/50 transition-colors">
+                  <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                  <p className="font-medium">Ajouter des photos</p>
+                  <p className="text-sm text-muted-foreground">JPG, PNG • Max 10 photos</p>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => e.target.files && handlePhotosUpload(e.target.files)}
+                />
+              </label>
+
+              {/* Photos preview */}
+              {photos.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {photos.map((photo, i) => (
+                    <div key={i} className="aspect-square rounded-lg bg-accent flex items-center justify-center overflow-hidden">
+                      <img
+                        src={URL.createObjectURL(photo)}
+                        alt={`Photo ${i + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Background selection */}
+              {photos.length > 0 && !photosProcessed && (
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Choisir un arrière-plan</p>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    {backgrounds.map((bg) => (
+                      <button
+                        key={bg.id}
+                        onClick={() => setSelectedBg(bg.id)}
+                        className={cn(
+                          'aspect-video rounded-lg border-2 p-2 text-xs text-center transition-all',
+                          selectedBg === bg.id
+                            ? 'border-primary bg-primary/10'
+                            : 'border-border hover:border-primary/50'
+                        )}
+                      >
+                        {bg.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Process button */}
+              {photos.length > 0 && !photosProcessed && (
+                <Button className="w-full" size="lg" onClick={processPhotos} disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Traitement en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Traiter les {photos.length} photos
+                    </>
+                  )}
+                </Button>
+              )}
+
+              {photosProcessed && (
+                <div className="flex items-center justify-center gap-2 text-green-600 py-4">
+                  <Check className="h-5 w-5" />
+                  <span className="font-medium">{photos.length} photos traitées avec succès</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 3: Price */}
+          {currentStep === 3 && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-xl font-semibold mb-2">Estimation du prix</h2>
+                <p className="text-muted-foreground">
+                  Prix suggéré basé sur le marché actuel
+                </p>
+              </div>
+
+              {!priceEstimate ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Kilométrage</label>
+                    <input
+                      type="number"
+                      value={kilometrage}
+                      onChange={(e) => setKilometrage(e.target.value)}
+                      className="w-full mt-1 px-4 py-3 rounded-lg bg-accent border-0 text-lg"
+                      placeholder="45000"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">en kilomètres</p>
+                  </div>
+                  
+                  <Button className="w-full" size="lg" onClick={getEstimate} disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Calcul en cours...
+                      </>
+                    ) : (
+                      <>
+                        <Euro className="h-4 w-4 mr-2" />
+                        Estimer le prix
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-3 gap-4">
+                    {[
+                      { label: 'Prix bas', value: priceEstimate.prix_min, color: 'text-orange-500' },
+                      { label: 'Prix moyen', value: priceEstimate.prix_moyen, color: 'text-green-500', recommended: true },
+                      { label: 'Prix haut', value: priceEstimate.prix_max, color: 'text-blue-500' },
+                    ].map((option) => (
+                      <button
+                        key={option.label}
+                        onClick={() => setSelectedPrice(option.value)}
+                        className={cn(
+                          'p-4 rounded-xl border-2 transition-all text-center',
+                          selectedPrice === option.value
+                            ? 'border-primary bg-primary/10'
+                            : 'border-border hover:border-primary/50'
+                        )}
+                      >
+                        <p className="text-xs text-muted-foreground">{option.label}</p>
+                        <p className={cn('text-2xl font-bold', option.color)}>
+                          {option.value.toLocaleString('fr-FR')} €
+                        </p>
+                        {option.recommended && (
+                          <Badge className="mt-2 text-xs">Recommandé</Badge>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <div className="text-center text-sm text-muted-foreground">
+                    Basé sur {priceEstimate.comparables} annonces similaires • Source: {priceEstimate.source}
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Ou entrez votre prix</label>
+                    <input
+                      type="number"
+                      value={selectedPrice || ''}
+                      onChange={(e) => setSelectedPrice(Number(e.target.value))}
+                      className="w-full mt-1 px-4 py-3 rounded-lg bg-accent border-0 text-lg text-center font-bold"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 4: Ad */}
+          {currentStep === 4 && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-xl font-semibold mb-2">Votre annonce</h2>
+                <p className="text-muted-foreground">
+                  Texte généré automatiquement, modifiez si besoin
+                </p>
+              </div>
+
+              {!generatedAd ? (
+                <Button className="w-full" size="lg" onClick={generateAd} disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Génération en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Générer l'annonce
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      Titre
+                      <Edit3 className="h-3 w-3 text-muted-foreground" />
+                    </label>
+                    <input
+                      type="text"
+                      value={editedTitle}
+                      onChange={(e) => setEditedTitle(e.target.value)}
+                      className="w-full mt-1 px-4 py-3 rounded-lg bg-accent border-0 font-medium"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      Description
+                      <Edit3 className="h-3 w-3 text-muted-foreground" />
+                    </label>
+                    <textarea
+                      value={editedDesc}
+                      onChange={(e) => setEditedDesc(e.target.value)}
+                      rows={12}
+                      className="w-full mt-1 px-4 py-3 rounded-lg bg-accent border-0 resize-none text-sm"
+                    />
+                  </div>
+
+                  <Button variant="outline" className="w-full" onClick={() => navigator.clipboard.writeText(`${editedTitle}\n\n${editedDesc}`)}>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copier le texte
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 5: Publish */}
+          {currentStep === 5 && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-xl font-semibold mb-2">Publier l'annonce</h2>
+                <p className="text-muted-foreground">
+                  Choisissez où diffuser votre annonce
+                </p>
+              </div>
+
+              <div className="grid gap-4">
+                {[
+                  { name: 'LeBonCoin', url: 'https://www.leboncoin.fr/deposer-une-annonce', color: 'bg-orange-500' },
+                  { name: 'La Centrale', url: 'https://www.lacentrale.fr/deposer-annonce.html', color: 'bg-red-500' },
+                  { name: 'ParuVendu', url: 'https://www.paruvendu.fr/deposer-annonce', color: 'bg-blue-500' },
+                ].map((platform) => (
+                  <a
+                    key={platform.name}
+                    href={platform.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-4 rounded-xl bg-accent hover:bg-accent/80 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn('h-10 w-10 rounded-lg flex items-center justify-center text-white font-bold', platform.color)}>
+                        {platform.name[0]}
+                      </div>
+                      <span className="font-medium">{platform.name}</span>
+                    </div>
+                    <ExternalLink className="h-5 w-5 text-muted-foreground" />
+                  </a>
+                ))}
+              </div>
+
+              <div className="text-center text-sm text-muted-foreground">
+                Vos photos et texte sont copiés, collez-les sur la plateforme
+              </div>
+
+              <Button className="w-full" size="lg" onClick={() => navigate('/vehicles')}>
+                <Check className="h-4 w-4 mr-2" />
+                Terminer
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Navigation */}
+      <div className="flex justify-between">
+        <Button
+          variant="outline"
+          onClick={prevStep}
+          disabled={currentStep === 1}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Précédent
+        </Button>
+        
+        {currentStep < 5 ? (
+          <Button
+            onClick={nextStep}
+            disabled={!canProceed()}
+          >
+            Suivant
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
+}

@@ -1,50 +1,26 @@
 import { Link, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  Users,
-  UserPlus,
-  Kanban,
+  Home,
   Car,
-  Image,
-  FileText,
-  Receipt,
-  BarChart3,
-  CheckSquare,
   Settings,
   HelpCircle,
   ChevronLeft,
   ChevronRight,
   X,
-  Upload,
-  Crown,
+  Plus,
 } from 'lucide-react';
 import { useUIStore } from '../../stores/uiStore';
-import { useAuthStore } from '../../stores/authStore';
 import { cn } from '../../lib/utils';
 
 interface NavItem {
   name: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  requiresBusiness?: boolean;
 }
 
-// Core navigation - visible to all users
-const coreNavigation: NavItem[] = [
-  { name: 'Accueil', href: '/', icon: LayoutDashboard },
-  { name: 'Traitement Photos', href: '/photos', icon: Image },
+const navigation: NavItem[] = [
+  { name: 'Accueil', href: '/', icon: Home },
   { name: 'Mes Véhicules', href: '/vehicles', icon: Car },
-];
-
-// Business+ only navigation (CRM)
-const businessNavigation: NavItem[] = [
-  { name: 'Clients', href: '/clients', icon: Users, requiresBusiness: true },
-  { name: 'Prospects', href: '/prospects', icon: UserPlus, requiresBusiness: true },
-  { name: 'Pipeline', href: '/pipeline', icon: Kanban, requiresBusiness: true },
-  { name: 'Annonces', href: '/annonces', icon: FileText, requiresBusiness: true },
-  { name: 'Factures', href: '/factures', icon: Receipt, requiresBusiness: true },
-  { name: 'Statistiques', href: '/statistics', icon: BarChart3, requiresBusiness: true },
-  { name: 'Tâches', href: '/tasks', icon: CheckSquare, requiresBusiness: true },
 ];
 
 const bottomNavigation: NavItem[] = [
@@ -55,9 +31,6 @@ const bottomNavigation: NavItem[] = [
 export function Sidebar() {
   const location = useLocation();
   const { sidebarCollapsed, sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore();
-  const { user } = useAuthStore();
-  
-  const hasCRM = user?.plan === 'pro_business';
 
   const handleLinkClick = () => {
     if (window.innerWidth < 1024) {
@@ -82,9 +55,6 @@ export function Sidebar() {
         <item.icon className="h-5 w-5 flex-shrink-0" />
         {(!sidebarCollapsed || sidebarOpen) && (
           <span className="text-sm font-medium">{item.name}</span>
-        )}
-        {sidebarCollapsed && !sidebarOpen && (
-          <span className="text-sm font-medium lg:hidden">{item.name}</span>
         )}
       </Link>
     </li>
@@ -121,7 +91,6 @@ export function Sidebar() {
             </Link>
           )}
 
-          {/* Desktop: collapse button */}
           <button
             onClick={toggleSidebar}
             className={cn(
@@ -136,7 +105,6 @@ export function Sidebar() {
             )}
           </button>
 
-          {/* Mobile: close button */}
           <button
             onClick={() => setSidebarOpen(false)}
             className="p-1.5 rounded-lg hover:bg-accent transition-colors lg:hidden"
@@ -147,56 +115,37 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex flex-col h-[calc(100vh-4rem)] justify-between p-3 overflow-y-auto">
-          <div className="space-y-6">
-            {/* Core Navigation */}
+          <div className="space-y-4">
+            {/* New Vehicle CTA */}
+            {(!sidebarCollapsed || sidebarOpen) && (
+              <Link
+                to="/new"
+                onClick={handleLinkClick}
+                className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+              >
+                <Plus className="h-5 w-5" />
+                Nouveau véhicule
+              </Link>
+            )}
+            {sidebarCollapsed && !sidebarOpen && (
+              <Link
+                to="/new"
+                onClick={handleLinkClick}
+                className="flex items-center justify-center p-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                title="Nouveau véhicule"
+              >
+                <Plus className="h-5 w-5" />
+              </Link>
+            )}
+
+            {/* Main Navigation */}
             <ul className="space-y-1">
-              {coreNavigation.map((item) => {
+              {navigation.map((item) => {
                 const isActive = location.pathname === item.href ||
                   (item.href !== '/' && location.pathname.startsWith(item.href));
                 return renderNavItem(item, isActive);
               })}
             </ul>
-
-            {/* Business+ CRM Section */}
-            {hasCRM ? (
-              <div>
-                {(!sidebarCollapsed || sidebarOpen) && (
-                  <div className="flex items-center gap-2 px-3 mb-2">
-                    <Crown className="h-4 w-4 text-amber-500" />
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      CRM Pro Business
-                    </span>
-                  </div>
-                )}
-                <ul className="space-y-1">
-                  {businessNavigation.map((item) => {
-                    const isActive = location.pathname === item.href ||
-                      (item.href !== '/' && location.pathname.startsWith(item.href));
-                    return renderNavItem(item, isActive);
-                  })}
-                </ul>
-              </div>
-            ) : (
-              /* Upgrade CTA for non-business users */
-              (!sidebarCollapsed || sidebarOpen) && (
-                <div className="mx-2 p-3 rounded-lg bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Crown className="h-4 w-4 text-amber-500" />
-                    <span className="text-sm font-semibold">Pro Business</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Débloquez le CRM complet : clients, prospects, factures...
-                  </p>
-                  <Link
-                    to="/settings?tab=subscription"
-                    onClick={handleLinkClick}
-                    className="block w-full text-center text-xs font-medium py-2 px-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                  >
-                    Passer à Pro Business
-                  </Link>
-                </div>
-              )
-            )}
           </div>
 
           {/* Bottom Navigation */}

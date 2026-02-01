@@ -44,7 +44,7 @@ export function Dashboard() {
     navigate('/photos');
   }, [navigate]);
 
-  const isPro = user?.plan === 'pro' || user?.plan === 'business';
+  const isPro = user?.plan === 'pro' || user?.plan === 'pro_business';
 
   return (
     <div className="space-y-8">

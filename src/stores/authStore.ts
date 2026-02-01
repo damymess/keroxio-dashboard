@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { setCrispUser, resetCrispUser } from '../lib/crisp';
 
-export type UserPlan = 'free' | 'pro' | 'business';
+export type UserPlan = 'particulier' | 'pro' | 'pro_business';
 
 interface User {
   id: string;
@@ -74,9 +74,9 @@ export const useAuthStore = create<AuthState>()(
         const profile = await profileResponse.json();
 
         // Determine plan from role
-        let plan: UserPlan = 'free';
+        let plan: UserPlan = 'particulier';
         if (profile.role === 'pro') plan = 'pro';
-        if (profile.role === 'admin' || profile.role === 'business') plan = 'business';
+        if (profile.role === 'admin' || profile.role === 'business') plan = 'pro_business';
 
         const user: User = {
           id: profile.id,
@@ -150,17 +150,17 @@ export const useAuthStore = create<AuthState>()(
       // Helper methods
       isPro: () => {
         const { user } = get();
-        return user?.plan === 'pro' || user?.plan === 'business';
+        return user?.plan === 'pro' || user?.plan === 'pro_business';
       },
 
-      isBusiness: () => {
+      isProBusiness: () => {
         const { user } = get();
-        return user?.plan === 'business';
+        return user?.plan === 'pro_business';
       },
 
       hasCRM: () => {
         const { user } = get();
-        return user?.plan === 'business';
+        return user?.plan === 'pro_business';
       },
     }),
     {

@@ -57,7 +57,7 @@ export function Sidebar() {
   const { sidebarCollapsed, sidebarOpen, toggleSidebar, setSidebarOpen } = useUIStore();
   const { user } = useAuthStore();
   
-  const hasCRM = user?.plan === 'business';
+  const hasCRM = user?.plan === 'pro_business';
 
   const handleLinkClick = () => {
     if (window.innerWidth < 1024) {
@@ -164,7 +164,7 @@ export function Sidebar() {
                   <div className="flex items-center gap-2 px-3 mb-2">
                     <Crown className="h-4 w-4 text-amber-500" />
                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      CRM Business+
+                      CRM Pro Business
                     </span>
                   </div>
                 )}
@@ -182,7 +182,7 @@ export function Sidebar() {
                 <div className="mx-2 p-3 rounded-lg bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20">
                   <div className="flex items-center gap-2 mb-2">
                     <Crown className="h-4 w-4 text-amber-500" />
-                    <span className="text-sm font-semibold">Business+</span>
+                    <span className="text-sm font-semibold">Pro Business</span>
                   </div>
                   <p className="text-xs text-muted-foreground mb-3">
                     Débloquez le CRM complet : clients, prospects, factures...
@@ -192,7 +192,7 @@ export function Sidebar() {
                     onClick={handleLinkClick}
                     className="block w-full text-center text-xs font-medium py-2 px-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                   >
-                    Passer à Business+
+                    Passer à Pro Business
                   </Link>
                 </div>
               )

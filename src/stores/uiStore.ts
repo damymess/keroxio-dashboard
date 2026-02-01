@@ -3,9 +3,11 @@ import { persist } from 'zustand/middleware';
 
 interface UIState {
   sidebarCollapsed: boolean;
+  sidebarOpen: boolean; // For mobile: controls overlay visibility
   theme: 'light' | 'dark' | 'system';
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  setSidebarOpen: (open: boolean) => void;
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
 }
 
@@ -13,6 +15,7 @@ export const useUIStore = create<UIState>()(
   persist(
     (set) => ({
       sidebarCollapsed: false,
+      sidebarOpen: false,
       theme: 'light',
 
       toggleSidebar: () => {
@@ -21,6 +24,10 @@ export const useUIStore = create<UIState>()(
 
       setSidebarCollapsed: (collapsed: boolean) => {
         set({ sidebarCollapsed: collapsed });
+      },
+
+      setSidebarOpen: (open: boolean) => {
+        set({ sidebarOpen: open });
       },
 
       setTheme: (theme: 'light' | 'dark' | 'system') => {

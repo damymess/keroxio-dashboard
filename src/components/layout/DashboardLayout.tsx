@@ -14,12 +14,15 @@ export function DashboardLayout() {
       <div
         className={cn(
           'transition-all duration-300',
-          sidebarCollapsed ? 'ml-16' : 'ml-64'
+          // Mobile: no margin (sidebar is overlay)
+          'ml-0',
+          // Desktop: margin based on sidebar state
+          sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
         )}
       >
         <Header />
 
-        <main className="p-6">
+        <main className="p-3 sm:p-4 md:p-6">
           <Outlet />
         </main>
       </div>

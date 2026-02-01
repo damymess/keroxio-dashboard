@@ -91,53 +91,70 @@ export function NewVehiclePage() {
       .catch(err => console.error('Failed to load backgrounds:', err));
   }, []);
 
-  // Handle plate image - call immat API
+  // Handle plate image - call OCR API
   const handlePlateUpload = useCallback(async (file: File) => {
     setPlateImage(file);
     setLoading(true);
     
     try {
-      // For now, extract plate from filename or use manual input
-      // TODO: Integrate OCR API when available
-      const plaque = prompt('Entrez la plaque d\'immatriculation:', 'AB-123-CD');
-      if (!plaque) {
-        setLoading(false);
-        return;
-      }
-
-      // Call immat API to validate and get vehicle info
-      const response = await fetch(`${API_URL}/immat/${plaque}/validate`);
-      if (response.ok) {
-        const data = await response.json();
-        setVehicleInfo({
-          plaque: plaque.toUpperCase(),
-          marque: data.marque || 'Inconnue',
-          modele: data.modele || 'Inconnu',
-          version: data.version,
-          annee: data.annee,
-          carburant: data.carburant,
-          boite: data.boite,
-          puissance: data.puissance,
-          couleur: data.couleur,
-        });
+      // Call OCR API to read plate from image
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const ocrResponse = await fetch(`${API_URL}/immat/ocr/full`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (ocrResponse.ok) {
+        const data = await ocrResponse.json();
+        
+        if (data.success && data.vehicle) {
+          setVehicleInfo({
+            plaque: data.vehicle.plaque,
+            marque: data.vehicle.marque || 'À compléter',
+            modele: data.vehicle.modele || 'À compléter',
+            version: data.vehicle.version,
+            annee: data.vehicle.premiere_immat_year,
+            carburant: data.vehicle.type_carburant,
+          });
+          setPlateDetected(true);
+        } else {
+          // OCR failed, ask for manual input
+          const plaque = prompt('Plaque non détectée. Entrez manuellement:', 'AB-123-CD');
+          if (plaque) {
+            setVehicleInfo({
+              plaque: plaque.toUpperCase(),
+              marque: 'À compléter',
+              modele: 'À compléter',
+            });
+            setPlateDetected(true);
+          }
+        }
       } else {
-        // Fallback with manual data
+        // API error, fallback to manual
+        const plaque = prompt('Erreur OCR. Entrez la plaque manuellement:', 'AB-123-CD');
+        if (plaque) {
+          setVehicleInfo({
+            plaque: plaque.toUpperCase(),
+            marque: 'À compléter',
+            modele: 'À compléter',
+          });
+          setPlateDetected(true);
+        }
+      }
+    } catch (err) {
+      console.error('OCR failed:', err);
+      // Fallback to manual entry
+      const plaque = prompt('Erreur. Entrez la plaque manuellement:', 'AB-123-CD');
+      if (plaque) {
         setVehicleInfo({
           plaque: plaque.toUpperCase(),
           marque: 'À compléter',
           modele: 'À compléter',
         });
+        setPlateDetected(true);
       }
-      setPlateDetected(true);
-    } catch (err) {
-      console.error('Plate validation failed:', err);
-      // Allow manual entry
-      setVehicleInfo({
-        plaque: 'MANUAL',
-        marque: 'À compléter',
-        modele: 'À compléter',
-      });
-      setPlateDetected(true);
     } finally {
       setLoading(false);
     }

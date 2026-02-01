@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Search, Upload, Grid, List, Download, Trash2, Eye, Image as ImageIcon } from 'lucide-react';
+import { Search, Upload, Grid, List, Download, Trash2, Eye, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Select } from '../components/ui/Select';
 import { cn, formatDate } from '../lib/utils';
+import { ImageProcessor } from '../components/ImageProcessor';
 
 interface Photo {
   id: string;
@@ -82,6 +83,7 @@ function formatFileSize(bytes: number): string {
 }
 
 export function PhotosPage() {
+  const [activeTab, setActiveTab] = useState<'transform' | 'gallery'>('transform');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -118,39 +120,63 @@ export function PhotosPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Galerie Photos</h1>
-          <p className="text-muted-foreground">
-            {stats.total} photos • {stats.transformed} transformées • {stats.processing} en cours
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <div className="flex rounded-lg border border-border overflow-hidden">
+          <h1 className="text-2xl font-bold">Photos</h1>
+          <div className="flex gap-1 mt-2">
             <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              size="icon"
-              onClick={() => setViewMode('grid')}
-              className="rounded-none"
+              variant={activeTab === 'transform' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('transform')}
             >
-              <Grid className="h-4 w-4" />
+              <Sparkles className="h-4 w-4 mr-2" />
+              Transformer
             </Button>
             <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="icon"
-              onClick={() => setViewMode('list')}
-              className="rounded-none"
+              variant={activeTab === 'gallery' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('gallery')}
             >
-              <List className="h-4 w-4" />
+              <ImageIcon className="h-4 w-4 mr-2" />
+              Galerie
             </Button>
           </div>
-          <Button>
-            <Upload className="h-4 w-4 mr-2" />
-            Uploader
-          </Button>
         </div>
+        {activeTab === 'gallery' && (
+          <div className="flex gap-2">
+            <div className="flex rounded-lg border border-border overflow-hidden">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                size="icon"
+                onClick={() => setViewMode('grid')}
+                className="rounded-none"
+              >
+                <Grid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="icon"
+                onClick={() => setViewMode('list')}
+                className="rounded-none"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+            <Button>
+              <Upload className="h-4 w-4 mr-2" />
+              Uploader
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Transform Tab */}
+      {activeTab === 'transform' && <ImageProcessor />}
+
+      {/* Gallery Tab */}
+      {activeTab === 'gallery' && (
+        <>
 
       {/* Filters */}
       <Card>
@@ -299,6 +325,8 @@ export function PhotosPage() {
             <p className="text-muted-foreground">Aucune photo trouvée</p>
           </CardContent>
         </Card>
+      )}
+      </>
       )}
 
       {/* Preview Modal */}

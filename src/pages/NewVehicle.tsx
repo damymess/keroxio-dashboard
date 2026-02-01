@@ -603,39 +603,59 @@ export function NewVehiclePage() {
                     <span className="font-medium">{processedPhotos.length} photos traitées</span>
                   </div>
                   
-                  {/* Processed photos grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {/* Before/After comparison + Processed photos grid */}
+                  <div className="space-y-3">
                     {processedPhotos.map((photo, i) => (
-                      <div key={i} className="relative aspect-video rounded-lg overflow-hidden bg-accent group">
-                        <img
-                          src={photo.final_url}
-                          alt={`Processed ${i + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        {/* Download/Share overlay */}
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                          <a
-                            href={photo.final_url}
-                            download={`keroxio-${i + 1}.jpg`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="p-2 rounded-full bg-white/90 text-gray-800 hover:bg-white"
-                          >
-                            <Download className="h-5 w-5" />
-                          </a>
-                          {navigator.share && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigator.share({
-                                  title: 'Photo Keroxio',
-                                  url: photo.final_url,
-                                }).catch(() => {});
-                              }}
-                              className="p-2 rounded-full bg-white/90 text-gray-800 hover:bg-white"
-                            >
-                              <Share2 className="h-5 w-5" />
-                            </button>
-                          )}
+                      <div key={i} className="rounded-xl overflow-hidden bg-accent">
+                        {/* Before/After row */}
+                        <div className="grid grid-cols-2 gap-1">
+                          {/* Before */}
+                          <div className="relative aspect-video">
+                            <img
+                              src={photos[i] ? URL.createObjectURL(photos[i]) : ''}
+                              alt={`Original ${i + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                              Avant
+                            </div>
+                          </div>
+                          {/* After */}
+                          <div className="relative aspect-video group">
+                            <img
+                              src={photo.final_url}
+                              alt={`Processed ${i + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded">
+                              Après
+                            </div>
+                            {/* Download/Share overlay */}
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                              <a
+                                href={photo.final_url}
+                                download={`keroxio-${i + 1}.jpg`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="p-2 rounded-full bg-white/90 text-gray-800 hover:bg-white"
+                              >
+                                <Download className="h-5 w-5" />
+                              </a>
+                              {navigator.share && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigator.share({
+                                      title: 'Photo Keroxio',
+                                      url: photo.final_url,
+                                    }).catch(() => {});
+                                  }}
+                                  className="p-2 rounded-full bg-white/90 text-gray-800 hover:bg-white"
+                                >
+                                  <Share2 className="h-5 w-5" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}

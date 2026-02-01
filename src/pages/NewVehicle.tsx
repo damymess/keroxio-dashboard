@@ -15,6 +15,8 @@ import {
   Sparkles,
   Edit3,
   Copy,
+  Download,
+  Share2,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -594,10 +596,85 @@ export function NewVehiclePage() {
                 </Button>
               )}
 
-              {photosProcessed && (
-                <div className="flex items-center justify-center gap-2 text-green-600 py-4">
-                  <Check className="h-5 w-5" />
-                  <span className="font-medium">{photos.length} photos traitées avec succès</span>
+              {photosProcessed && processedPhotos.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <Check className="h-5 w-5" />
+                    <span className="font-medium">{processedPhotos.length} photos traitées</span>
+                  </div>
+                  
+                  {/* Processed photos grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {processedPhotos.map((photo, i) => (
+                      <div key={i} className="relative aspect-video rounded-lg overflow-hidden bg-accent group">
+                        <img
+                          src={photo.final_url}
+                          alt={`Processed ${i + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        {/* Download/Share overlay */}
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <a
+                            href={photo.final_url}
+                            download={`keroxio-${i + 1}.jpg`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-2 rounded-full bg-white/90 text-gray-800 hover:bg-white"
+                          >
+                            <Download className="h-5 w-5" />
+                          </a>
+                          {navigator.share && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.share({
+                                  title: 'Photo Keroxio',
+                                  url: photo.final_url,
+                                }).catch(() => {});
+                              }}
+                              className="p-2 rounded-full bg-white/90 text-gray-800 hover:bg-white"
+                            >
+                              <Share2 className="h-5 w-5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Download all / Share all */}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        processedPhotos.forEach((photo, i) => {
+                          const link = document.createElement('a');
+                          link.href = photo.final_url;
+                          link.download = `keroxio-${i + 1}.jpg`;
+                          link.click();
+                        });
+                      }}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Télécharger tout
+                    </Button>
+                    {navigator.share && (
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => {
+                          navigator.share({
+                            title: `${vehicleInfo?.marque} ${vehicleInfo?.modele}`,
+                            text: `Photos de ${vehicleInfo?.marque} ${vehicleInfo?.modele}`,
+                            url: processedPhotos[0]?.final_url,
+                          }).catch(() => {});
+                        }}
+                      >
+                        <Share2 className="h-4 w-4 mr-2" />
+                        Partager
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

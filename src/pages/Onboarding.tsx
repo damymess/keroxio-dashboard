@@ -22,7 +22,7 @@ interface OnboardingStep {
   description: string;
   icon: React.ComponentType<{ className?: string }>;
   features: string[];
-  color: string;
+  gradient: string;
 }
 
 const steps: OnboardingStep[] = [
@@ -38,7 +38,7 @@ const steps: OnboardingStep[] = [
       'Generation automatique d\'annonces',
       'Suivi de votre performance'
     ],
-    color: 'bg-blue-500'
+    gradient: 'from-ios-blue to-ios-purple'
   },
   {
     id: 2,
@@ -52,7 +52,7 @@ const steps: OnboardingStep[] = [
       'Estimation de prix Autobiz',
       'Historique complet du vehicule'
     ],
-    color: 'bg-green-500'
+    gradient: 'from-ios-green to-ios-teal'
   },
   {
     id: 3,
@@ -66,7 +66,7 @@ const steps: OnboardingStep[] = [
       'Ajout de logo personnalise',
       'Export optimise pour les annonces'
     ],
-    color: 'bg-purple-500'
+    gradient: 'from-ios-purple to-ios-pink'
   },
   {
     id: 4,
@@ -80,7 +80,7 @@ const steps: OnboardingStep[] = [
       'Multi-plateforme (LBC, Centrale...)',
       'Personnalisation facile'
     ],
-    color: 'bg-orange-500'
+    gradient: 'from-ios-orange to-ios-red'
   },
   {
     id: 5,
@@ -94,7 +94,7 @@ const steps: OnboardingStep[] = [
       'Rappels et taches',
       'Historique des interactions'
     ],
-    color: 'bg-pink-500'
+    gradient: 'from-ios-pink to-ios-purple'
   },
   {
     id: 6,
@@ -108,7 +108,7 @@ const steps: OnboardingStep[] = [
       'Alertes personnalisees',
       'Rapports exportables'
     ],
-    color: 'bg-cyan-500'
+    gradient: 'from-ios-teal to-ios-blue'
   },
 ];
 
@@ -142,31 +142,31 @@ export function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-liquid flex flex-col">
       {/* Progress bar */}
-      <div className="h-1 bg-accent">
+      <div className="h-1 bg-white/5">
         <div
-          className="h-full bg-primary transition-all duration-500"
+          className="h-full bg-gradient-to-r from-ios-blue to-ios-purple transition-all duration-500"
           style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
         />
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+      <div className="flex items-center justify-between px-6 py-4 glass-header">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-ios-blue to-ios-purple flex items-center justify-center shadow-[0_2px_12px_rgba(0,122,255,0.3)]">
             <span className="text-white font-bold text-sm">K</span>
           </div>
-          <span className="font-semibold">Keroxio</span>
+          <span className="font-semibold text-white">Keroxio</span>
         </div>
 
         <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-white/40">
             Etape {currentStep + 1} sur {steps.length}
           </span>
           <button
             onClick={handleSkip}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="text-sm text-white/40 hover:text-white/60 transition-colors"
           >
             Passer l'introduction
           </button>
@@ -175,11 +175,11 @@ export function OnboardingPage() {
 
       {/* Content */}
       <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-4xl">
+        <div className="w-full max-w-4xl animate-fade-in" key={currentStep}>
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left: Illustration */}
             <div className="flex flex-col items-center text-center lg:text-left lg:items-start">
-              <div className={`${step.color} p-6 rounded-2xl mb-6 inline-block`}>
+              <div className={`bg-gradient-to-br ${step.gradient} p-6 rounded-3xl mb-6 inline-block shadow-[0_8px_32px_rgba(0,122,255,0.2)]`}>
                 <step.icon className="h-16 w-16 text-white" />
               </div>
 
@@ -190,10 +190,10 @@ export function OnboardingPage() {
                     onClick={() => setCurrentStep(index)}
                     className={`h-2 rounded-full transition-all ${
                       index === currentStep
-                        ? 'w-8 bg-primary'
+                        ? 'w-8 bg-ios-blue'
                         : index < currentStep
-                          ? 'w-2 bg-primary/50'
-                          : 'w-2 bg-accent'
+                          ? 'w-2 bg-ios-blue/50'
+                          : 'w-2 bg-white/10'
                     }`}
                   />
                 ))}
@@ -202,13 +202,13 @@ export function OnboardingPage() {
 
             {/* Right: Content */}
             <div>
-              <p className="text-sm font-medium text-primary mb-2">
+              <p className="text-sm font-medium text-ios-blue mb-2">
                 {step.subtitle}
               </p>
-              <h1 className="text-3xl font-bold mb-4">
+              <h1 className="text-3xl font-bold mb-4 text-white">
                 {step.title}
               </h1>
-              <p className="text-muted-foreground mb-6 text-lg">
+              <p className="text-white/50 mb-6 text-lg">
                 {step.description}
               </p>
 
@@ -216,17 +216,17 @@ export function OnboardingPage() {
               <ul className="space-y-3 mb-8">
                 {step.features.map((feature, index) => (
                   <li key={index} className="flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
-                    <span>{feature}</span>
+                    <CheckCircle2 className="h-5 w-5 text-ios-green flex-shrink-0" />
+                    <span className="text-white/80">{feature}</span>
                   </li>
                 ))}
               </ul>
 
               {/* User greeting on first step */}
               {isFirstStep && user && (
-                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6">
-                  <p className="text-sm">
-                    <span className="font-semibold">Bonjour {user.username} !</span>
+                <div className="glass rounded-2xl p-4 mb-6 border-ios-blue/20">
+                  <p className="text-sm text-white/70">
+                    <span className="font-semibold text-white">Bonjour {user.username} !</span>
                     {' '}Decouvrez les fonctionnalites de Keroxio en quelques etapes.
                   </p>
                 </div>
@@ -247,6 +247,7 @@ export function OnboardingPage() {
                 <Button
                   onClick={handleNext}
                   className="flex-1 flex items-center justify-center gap-2"
+                  size="lg"
                 >
                   {isLastStep ? (
                     <>
@@ -267,8 +268,8 @@ export function OnboardingPage() {
       </div>
 
       {/* Footer tip */}
-      <div className="border-t border-border px-6 py-4">
-        <p className="text-center text-sm text-muted-foreground">
+      <div className="border-t border-white/5 px-6 py-4">
+        <p className="text-center text-sm text-white/30">
           Vous pouvez toujours revoir cette introduction depuis les parametres
         </p>
       </div>

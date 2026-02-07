@@ -44,10 +44,10 @@ export function Sidebar() {
         to={item.href}
         onClick={handleLinkClick}
         className={cn(
-          'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
+          'flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-200',
           isActive
-            ? 'bg-primary text-primary-foreground'
-            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+            ? 'glass-btn-primary text-white'
+            : 'text-white/50 hover:text-white/80 hover:bg-white/5',
           sidebarCollapsed && !sidebarOpen && 'lg:justify-center lg:px-2'
         )}
         title={sidebarCollapsed && !sidebarOpen ? item.name : undefined}
@@ -65,7 +65,7 @@ export function Sidebar() {
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -73,7 +73,7 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-50 h-screen bg-card border-r border-border transition-all duration-300',
+          'fixed left-0 top-0 z-50 h-screen glass-sidebar transition-all duration-300',
           'lg:translate-x-0',
           sidebarCollapsed ? 'lg:w-16' : 'lg:w-64',
           'w-64',
@@ -81,20 +81,20 @@ export function Sidebar() {
         )}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center justify-between px-4 border-b border-border">
+        <div className="flex h-16 items-center justify-between px-4 border-b border-white/8">
           {(!sidebarCollapsed || sidebarOpen) && (
-            <Link to="/" className="flex items-center gap-2" onClick={handleLinkClick}>
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+            <Link to="/" className="flex items-center gap-2.5" onClick={handleLinkClick}>
+              <div className="h-8 w-8 rounded-xl bg-ios-blue flex items-center justify-center shadow-[0_2px_12px_rgba(0,122,255,0.3)]">
                 <span className="text-white font-bold text-sm">K</span>
               </div>
-              <span className="font-semibold text-lg">Keroxio</span>
+              <span className="font-semibold text-lg text-white">Keroxio</span>
             </Link>
           )}
 
           <button
             onClick={toggleSidebar}
             className={cn(
-              'p-1.5 rounded-lg hover:bg-accent transition-colors hidden lg:block',
+              'p-1.5 rounded-xl hover:bg-white/5 transition-colors hidden lg:block text-white/40 hover:text-white/70',
               sidebarCollapsed && 'mx-auto'
             )}
           >
@@ -107,7 +107,7 @@ export function Sidebar() {
 
           <button
             onClick={() => setSidebarOpen(false)}
-            className="p-1.5 rounded-lg hover:bg-accent transition-colors lg:hidden"
+            className="p-1.5 rounded-xl hover:bg-white/5 transition-colors lg:hidden text-white/40"
           >
             <X className="h-5 w-5" />
           </button>
@@ -121,7 +121,7 @@ export function Sidebar() {
               <Link
                 to="/new"
                 onClick={handleLinkClick}
-                className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+                className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-2xl glass-btn-primary text-white font-medium"
               >
                 <Plus className="h-5 w-5" />
                 Nouveau véhicule
@@ -131,7 +131,7 @@ export function Sidebar() {
               <Link
                 to="/new"
                 onClick={handleLinkClick}
-                className="flex items-center justify-center p-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                className="flex items-center justify-center p-3 rounded-2xl glass-btn-primary text-white"
                 title="Nouveau véhicule"
               >
                 <Plus className="h-5 w-5" />

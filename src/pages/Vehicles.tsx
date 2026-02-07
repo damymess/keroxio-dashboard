@@ -15,10 +15,10 @@ const statusOptions = [
   { value: 'published', label: 'Publié' },
 ];
 
-const statusConfig: Record<string, { label: string; color: string }> = {
-  draft: { label: 'Brouillon', color: 'bg-gray-100 text-gray-800' },
-  ready: { label: 'Prêt', color: 'bg-amber-100 text-amber-800' },
-  published: { label: 'Publié', color: 'bg-green-100 text-green-800' },
+const statusConfig: Record<string, { label: string; variant: 'secondary' | 'warning' | 'success' }> = {
+  draft: { label: 'Brouillon', variant: 'secondary' },
+  ready: { label: 'Prêt', variant: 'warning' },
+  published: { label: 'Publié', variant: 'success' },
 };
 
 export function VehiclesPage() {
@@ -71,17 +71,17 @@ export function VehiclesPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Mes Véhicules</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold text-white">Mes Véhicules</h1>
+          <p className="text-white/40">
             {filteredVehicles.length} véhicule{filteredVehicles.length > 1 ? 's' : ''}
           </p>
         </div>
         <div className="flex gap-2">
-          <div className="flex rounded-lg border border-border overflow-hidden">
+          <div className="flex rounded-2xl glass overflow-hidden">
             <Button
               variant={viewMode === 'grid' ? 'default' : 'ghost'}
               size="icon"
@@ -108,17 +108,17 @@ export function VehiclesPage() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-4">
+        <CardContent className="p-4 pt-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
                 <input
                   type="text"
                   placeholder="Rechercher par marque, modèle ou plaque..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full h-10 pl-10 pr-4 rounded-lg bg-accent border-0 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full h-11 pl-10 pr-4 rounded-2xl glass-input text-sm text-foreground placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-ios-blue/50"
                 />
               </div>
             </div>
@@ -136,17 +136,17 @@ export function VehiclesPage() {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ios-blue" />
         </div>
       )}
 
       {/* Empty state */}
       {!loading && filteredVehicles.length === 0 && (
         <Card>
-          <CardContent className="p-12 text-center">
-            <Car className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-lg font-medium mb-2">Aucun véhicule</p>
-            <p className="text-muted-foreground mb-4">
+          <CardContent className="p-12 pt-12 text-center">
+            <Car className="h-12 w-12 mx-auto text-white/10 mb-4" />
+            <p className="text-lg font-medium text-white mb-2">Aucun véhicule</p>
+            <p className="text-white/40 mb-4">
               Commencez par ajouter votre premier véhicule
             </p>
             <Button onClick={() => navigate('/new')}>
@@ -175,7 +175,7 @@ export function VehiclesPage() {
               <Card
                 key={vehicle.id}
                 className={cn(
-                  'overflow-hidden cursor-pointer hover:shadow-lg transition-shadow',
+                  'overflow-hidden cursor-pointer hover:border-white/20 transition-all group',
                   viewMode === 'list' && 'flex'
                 )}
                 onClick={() => navigate(`/vehicles/${vehicle.id}`)}
@@ -183,7 +183,7 @@ export function VehiclesPage() {
                 {/* Photo */}
                 <div
                   className={cn(
-                    'bg-accent flex items-center justify-center relative',
+                    'bg-white/3 flex items-center justify-center relative',
                     viewMode === 'grid' ? 'aspect-video' : 'w-40 h-28 flex-shrink-0'
                   )}
                 >
@@ -194,12 +194,12 @@ export function VehiclesPage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <Car className="h-12 w-12 text-muted-foreground" />
+                    <Car className="h-12 w-12 text-white/10" />
                   )}
                   
                   {/* Photo count */}
                   {hasPhotos && (
-                    <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                    <div className="absolute bottom-2 right-2 glass text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                       <ImageIcon className="h-3 w-3" />
                       {vehicle.photos_traitees.length}
                     </div>
@@ -207,23 +207,23 @@ export function VehiclesPage() {
                 </div>
 
                 {/* Info */}
-                <CardContent className={cn('p-4', viewMode === 'list' && 'flex-1')}>
+                <CardContent className={cn('p-4 pt-4', viewMode === 'list' && 'flex-1')}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold truncate">
+                      <p className="font-semibold truncate text-white">
                         {vehicle.marque} {vehicle.modele}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-white/40">
                         {vehicle.plaque} {vehicle.annee && `• ${vehicle.annee}`}
                       </p>
                     </div>
-                    <Badge className={cn('text-xs flex-shrink-0', status.color)}>
+                    <Badge variant={status.variant} className="text-xs flex-shrink-0">
                       {status.label}
                     </Badge>
                   </div>
 
                   {vehicle.prix_choisi && (
-                    <p className="text-lg font-bold mt-2 text-primary">
+                    <p className="text-lg font-bold mt-2 text-ios-blue">
                       {vehicle.prix_choisi.toLocaleString('fr-FR')} €
                     </p>
                   )}
@@ -242,7 +242,7 @@ export function VehiclesPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="ml-auto h-8 w-8 text-destructive"
+                      className="ml-auto h-8 w-8 text-ios-red/60 hover:text-ios-red hover:bg-ios-red/10"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDelete(vehicle.id);

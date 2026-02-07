@@ -8,15 +8,13 @@ export function DashboardLayout() {
   const sidebarCollapsed = useUIStore((state) => state.sidebarCollapsed);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-liquid">
       <Sidebar />
 
       <div
         className={cn(
           'transition-all duration-300',
-          // Mobile: no margin (sidebar is overlay)
           'ml-0',
-          // Desktop: margin based on sidebar state
           sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
         )}
       >

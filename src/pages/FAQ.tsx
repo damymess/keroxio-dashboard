@@ -222,17 +222,17 @@ export function FAQPage() {
     : filteredCategories.filter((c) => c.id === activeCategory);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold">FAQ</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-bold text-white">FAQ</h1>
+        <p className="text-white/40">
           Questions fréquemment posées sur Keroxio
         </p>
       </div>
 
       {/* Search */}
       <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 z-10" />
         <Input
           placeholder="Rechercher dans la FAQ..."
           value={searchQuery}
@@ -245,20 +245,20 @@ export function FAQPage() {
         {/* Categories sidebar */}
         {!searchQuery && (
           <div className="lg:w-56 flex-shrink-0">
-            <nav className="flex lg:flex-col gap-1">
+            <nav className="flex lg:flex-col gap-1 glass-card p-2">
               {faqData.map((category) => (
                 <button
                   key={category.id}
                   onClick={() => setActiveCategory(category.id)}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm transition-colors text-left ${
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-2xl text-sm transition-all text-left ${
                     activeCategory === category.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-accent'
+                      ? 'glass-btn-primary text-white'
+                      : 'text-white/50 hover:text-white/80 hover:bg-white/5'
                   }`}
                 >
                   <category.icon className="h-4 w-4 flex-shrink-0" />
                   <span className="font-medium">{category.label}</span>
-                  <span className="ml-auto text-xs opacity-70">
+                  <span className="ml-auto text-xs opacity-50">
                     {category.items.length}
                   </span>
                 </button>
@@ -273,15 +273,15 @@ export function FAQPage() {
             <div key={category.id}>
               {searchQuery && (
                 <div className="flex items-center gap-2 mb-3">
-                  <category.icon className="h-5 w-5 text-primary" />
-                  <h2 className="font-semibold text-lg">{category.label}</h2>
+                  <category.icon className="h-5 w-5 text-ios-blue" />
+                  <h2 className="font-semibold text-lg text-white">{category.label}</h2>
                 </div>
               )}
 
               <Card>
                 <CardHeader className={searchQuery ? 'hidden' : ''}>
-                  <CardTitle className="flex items-center gap-2">
-                    <category.icon className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <category.icon className="h-5 w-5 text-ios-blue" />
                     {category.label}
                   </CardTitle>
                   <CardDescription>
@@ -293,23 +293,23 @@ export function FAQPage() {
                     {category.items.map((item) => (
                       <div
                         key={item.id}
-                        className="border border-border rounded-lg overflow-hidden"
+                        className="border border-white/8 rounded-2xl overflow-hidden"
                       >
                         <button
                           onClick={() => toggleItem(item.id)}
-                          className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-accent/50 transition-colors"
+                          className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-white/5 transition-colors"
                         >
-                          <span className="font-medium text-sm pr-4">
+                          <span className="font-medium text-sm pr-4 text-white">
                             {item.question}
                           </span>
                           {expandedItems.includes(item.id) ? (
-                            <ChevronUp className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                            <ChevronUp className="h-4 w-4 flex-shrink-0 text-white/30" />
                           ) : (
-                            <ChevronDown className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                            <ChevronDown className="h-4 w-4 flex-shrink-0 text-white/30" />
                           )}
                         </button>
                         {expandedItems.includes(item.id) && (
-                          <div className="px-4 pb-4 pt-1 text-sm text-muted-foreground border-t border-border bg-accent/30">
+                          <div className="px-4 pb-4 pt-1 text-sm text-white/50 border-t border-white/5 bg-white/3">
                             {item.answer}
                           </div>
                         )}
@@ -323,14 +323,14 @@ export function FAQPage() {
 
           {currentCategory.length === 0 && searchQuery && (
             <Card>
-              <CardContent className="py-12 text-center">
-                <HelpCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-lg font-medium">Aucun résultat trouvé</p>
-                <p className="text-muted-foreground mt-1">
+              <CardContent className="py-12 pt-12 text-center">
+                <HelpCircle className="h-12 w-12 mx-auto text-white/10 mb-4" />
+                <p className="text-lg font-medium text-white">Aucun résultat trouvé</p>
+                <p className="text-white/40 mt-1">
                   Essayez avec d'autres mots-clés ou{' '}
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="text-primary hover:underline"
+                    className="text-ios-blue hover:underline"
                   >
                     parcourez les catégories
                   </button>
@@ -342,18 +342,18 @@ export function FAQPage() {
       </div>
 
       {/* Contact support */}
-      <Card className="bg-primary/5 border-primary/20">
-        <CardContent className="py-6">
+      <Card className="border-ios-blue/20">
+        <CardContent className="py-6 pt-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              <h3 className="font-semibold">Vous n'avez pas trouvé votre réponse ?</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="font-semibold text-white">Vous n'avez pas trouvé votre réponse ?</h3>
+              <p className="text-sm text-white/40">
                 Notre équipe support est disponible pour vous aider
               </p>
             </div>
             <a
               href="mailto:support@keroxio.com"
-              className="inline-flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+              className="glass-btn-primary text-white px-5 py-2.5 rounded-2xl text-sm font-medium inline-flex items-center"
             >
               Contacter le support
             </a>

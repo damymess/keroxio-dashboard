@@ -28,24 +28,28 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-liquid relative overflow-hidden">
+      {/* Ambient glow effects */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-ios-blue/10 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-ios-purple/8 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
+
+      <div className="w-full max-w-md relative z-10 animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex h-12 w-12 rounded-xl bg-primary items-center justify-center mb-4">
-            <span className="text-2xl font-bold text-white">K</span>
+          <div className="inline-flex h-16 w-16 rounded-2xl bg-gradient-to-br from-ios-blue to-ios-purple items-center justify-center mb-4 shadow-[0_4px_24px_rgba(0,122,255,0.3)]">
+            <span className="text-3xl font-bold text-white">K</span>
           </div>
-          <h1 className="text-2xl font-bold">Keroxio</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-3xl font-bold text-white">Keroxio</h1>
+          <p className="text-white/40 mt-2">
             Connectez-vous à votre espace
           </p>
         </div>
 
         {/* Form */}
-        <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="glass-strong rounded-3xl p-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+              <div className="p-3 rounded-2xl bg-ios-red/10 border border-ios-red/20 text-ios-red text-sm">
                 {error}
               </div>
             )}
@@ -69,16 +73,16 @@ export function LoginPage() {
             />
 
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="rounded border-input"
+                  className="rounded border-white/20 bg-white/5 text-ios-blue focus:ring-ios-blue/50"
                 />
-                <span className="text-sm">Se souvenir de moi</span>
+                <span className="text-sm text-white/50">Se souvenir de moi</span>
               </label>
               <a
                 href="#"
-                className="text-sm text-primary hover:underline"
+                className="text-sm text-ios-blue hover:text-ios-blue/80 transition-colors"
               >
                 Mot de passe oublié ?
               </a>
@@ -87,6 +91,7 @@ export function LoginPage() {
             <Button
               type="submit"
               className="w-full"
+              size="lg"
               loading={loading}
             >
               Se connecter
@@ -94,9 +99,9 @@ export function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
+        <p className="text-center text-sm text-white/30 mt-6">
           Pas encore de compte ?{' '}
-          <a href="#" className="text-primary hover:underline">
+          <a href="#" className="text-ios-blue hover:text-ios-blue/80 transition-colors">
             Contactez-nous
           </a>
         </p>

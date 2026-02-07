@@ -12,18 +12,18 @@ export function Badge({
   ...props
 }: BadgeProps) {
   const variants = {
-    default: 'bg-primary text-primary-foreground',
-    secondary: 'bg-secondary text-secondary-foreground',
-    success: 'bg-green-100 text-green-700',
-    warning: 'bg-yellow-100 text-yellow-700',
-    destructive: 'bg-destructive text-destructive-foreground',
-    outline: 'border border-border bg-transparent',
+    default: 'bg-ios-blue/20 text-ios-blue border-ios-blue/30',
+    secondary: 'bg-white/5 text-foreground/80 border-white/10',
+    success: 'bg-ios-green/20 text-ios-green border-ios-green/30',
+    warning: 'bg-ios-orange/20 text-ios-orange border-ios-orange/30',
+    destructive: 'bg-ios-red/20 text-ios-red border-ios-red/30',
+    outline: 'border border-white/15 bg-transparent text-foreground/70',
   };
 
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border',
         variants[variant],
         className
       )}

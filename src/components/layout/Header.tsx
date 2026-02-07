@@ -5,8 +5,6 @@ import {
   Bell,
   User,
   LogOut,
-  Moon,
-  Sun,
   ChevronDown,
   Menu,
 } from 'lucide-react';
@@ -17,7 +15,7 @@ import { cn } from '../../lib/utils';
 export function Header() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const { theme, setTheme, setSidebarOpen } = useUIStore();
+  const { setSidebarOpen } = useUIStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -36,12 +34,12 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-30 h-14 sm:h-16 bg-card border-b border-border">
+    <header className="sticky top-0 z-30 h-14 sm:h-16 glass-header">
       <div className="flex h-full items-center justify-between px-3 sm:px-6 gap-2 sm:gap-4">
         {/* Mobile: Menu button */}
         <button
           onClick={() => setSidebarOpen(true)}
-          className="p-2 rounded-lg hover:bg-accent transition-colors lg:hidden flex-shrink-0"
+          className="p-2 rounded-xl hover:bg-white/5 transition-colors lg:hidden flex-shrink-0 text-white/60"
           aria-label="Ouvrir le menu"
         >
           <Menu className="h-5 w-5" />
@@ -50,13 +48,13 @@ export function Header() {
         {/* Search - Desktop */}
         <form onSubmit={handleSearch} className="flex-1 max-w-md hidden sm:block">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
             <input
               type="text"
               placeholder="Rechercher clients, prospects, véhicules..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-10 pl-10 pr-4 rounded-lg bg-accent border-0 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full h-10 pl-10 pr-4 rounded-2xl glass-input text-sm text-foreground placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-ios-blue/50"
             />
           </div>
         </form>
@@ -64,7 +62,7 @@ export function Header() {
         {/* Mobile: Search toggle */}
         <button
           onClick={() => setShowMobileSearch(!showMobileSearch)}
-          className="p-2 rounded-lg hover:bg-accent transition-colors sm:hidden"
+          className="p-2 rounded-xl hover:bg-white/5 transition-colors sm:hidden text-white/60"
           aria-label="Rechercher"
         >
           <Search className="h-5 w-5" />
@@ -74,50 +72,38 @@ export function Header() {
         <div className="flex-1 sm:hidden" />
 
         {/* Right side */}
-        <div className="flex items-center gap-1 sm:gap-4">
-          {/* Theme toggle */}
-          <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="p-2 rounded-lg hover:bg-accent transition-colors"
-          >
-            {theme === 'dark' ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
-          </button>
-
+        <div className="flex items-center gap-1 sm:gap-3">
           {/* Notifications */}
-          <button className="relative p-2 rounded-lg hover:bg-accent transition-colors">
+          <button className="relative p-2 rounded-xl hover:bg-white/5 transition-colors text-white/60">
             <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-ios-red shadow-[0_0_6px_rgba(255,59,48,0.5)]" />
           </button>
 
           {/* User menu */}
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent transition-colors"
+              className="flex items-center gap-2 p-2 rounded-xl hover:bg-white/5 transition-colors"
             >
-              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-                <User className="h-4 w-4 text-primary-foreground" />
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-ios-blue to-ios-purple flex items-center justify-center">
+                <User className="h-4 w-4 text-white" />
               </div>
-              <span className="text-sm font-medium hidden lg:block">
+              <span className="text-sm font-medium hidden lg:block text-white/80">
                 {user?.username || 'Utilisateur'}
               </span>
-              <ChevronDown className="h-4 w-4 hidden lg:block" />
+              <ChevronDown className="h-4 w-4 hidden lg:block text-white/40" />
             </button>
 
             {/* Dropdown */}
             {showUserMenu && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-1 z-50">
-                <div className="px-4 py-2 border-b border-border">
-                  <p className="text-sm font-medium truncate">{user?.username}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+              <div className="absolute right-0 top-full mt-2 w-48 glass-strong rounded-2xl py-1 z-50 animate-scale-in">
+                <div className="px-4 py-3 border-b border-white/10">
+                  <p className="text-sm font-medium truncate text-white">{user?.username}</p>
+                  <p className="text-xs text-white/40 truncate">{user?.email}</p>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-destructive hover:bg-accent transition-colors"
+                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-ios-red hover:bg-white/5 transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
                   Déconnexion
@@ -130,17 +116,17 @@ export function Header() {
 
       {/* Mobile search overlay */}
       {showMobileSearch && (
-        <div className="absolute left-0 right-0 top-full bg-card border-b border-border p-3 sm:hidden">
+        <div className="absolute left-0 right-0 top-full glass-header p-3 sm:hidden">
           <form onSubmit={handleSearch}>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
               <input
                 type="text"
                 placeholder="Rechercher..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 autoFocus
-                className="w-full h-10 pl-10 pr-4 rounded-lg bg-accent border-0 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full h-10 pl-10 pr-4 rounded-2xl glass-input text-sm text-foreground placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-ios-blue/50"
               />
             </div>
           </form>

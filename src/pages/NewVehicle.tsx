@@ -103,7 +103,6 @@ export function NewVehiclePage() {
     setLoading(true);
     
     try {
-      // Call OCR API to read plate from image
       const formData = new FormData();
       formData.append('file', file);
       
@@ -126,7 +125,6 @@ export function NewVehiclePage() {
           });
           setPlateDetected(true);
         } else {
-          // OCR failed, ask for manual input
           const plaque = prompt('Plaque non détectée. Entrez manuellement:', 'AB-123-CD');
           if (plaque) {
             setVehicleInfo({
@@ -138,7 +136,6 @@ export function NewVehiclePage() {
           }
         }
       } else {
-        // API error, fallback to manual
         const plaque = prompt('Erreur OCR. Entrez la plaque manuellement:', 'AB-123-CD');
         if (plaque) {
           setVehicleInfo({
@@ -151,7 +148,6 @@ export function NewVehiclePage() {
       }
     } catch (err) {
       console.error('OCR failed:', err);
-      // Fallback to manual entry
       const plaque = prompt('Erreur. Entrez la plaque manuellement:', 'AB-123-CD');
       if (plaque) {
         setVehicleInfo({
@@ -223,7 +219,6 @@ export function NewVehiclePage() {
         setPriceEstimate(estimate);
         setSelectedPrice(estimate.prix_moyen);
       } else {
-        // Fallback estimation
         setPriceEstimate({
           prix_min: 10000,
           prix_moyen: 12000,
@@ -276,7 +271,6 @@ export function NewVehiclePage() {
         setEditedTitle(data.titre || `${vehicleInfo.marque} ${vehicleInfo.modele} - ${vehicleInfo.annee}`);
         setEditedDesc(data.description || data.texte || '');
       } else {
-        // Fallback: generate simple ad
         const titre = `${vehicleInfo.marque} ${vehicleInfo.modele}${vehicleInfo.version ? ' ' + vehicleInfo.version : ''} - ${vehicleInfo.annee || 'Année NC'}`;
         const desc = `🚗 ${vehicleInfo.marque} ${vehicleInfo.modele} à vendre !
 
@@ -296,7 +290,6 @@ export function NewVehiclePage() {
       }
     } catch (err) {
       console.error('Ad generation failed:', err);
-      // Fallback
       const titre = `${vehicleInfo.marque} ${vehicleInfo.modele} - ${vehicleInfo.annee || ''}`;
       const desc = `${vehicleInfo.marque} ${vehicleInfo.modele} à vendre. Prix: ${selectedPrice?.toLocaleString('fr-FR')} €`;
       setGeneratedAd({ titre, description: desc });
@@ -312,7 +305,6 @@ export function NewVehiclePage() {
     if (currentStep >= 5) return;
     
     try {
-      // Step 1 → 2: Create vehicle
       if (currentStep === 1 && vehicleInfo && !vehicleId) {
         const created = await vehicleApi.create({
           plaque: vehicleInfo.plaque,
@@ -326,7 +318,6 @@ export function NewVehiclePage() {
         setVehicleId(created.id);
       }
       
-      // Step 2 → 3: Update with photos
       if (currentStep === 2 && vehicleId && processedPhotos.length > 0) {
         await vehicleApi.update(vehicleId, {
           photos_traitees: processedPhotos.map(p => p.final_url),
@@ -334,7 +325,6 @@ export function NewVehiclePage() {
         });
       }
       
-      // Step 3 → 4: Update with price
       if (currentStep === 3 && vehicleId && priceEstimate && selectedPrice) {
         await vehicleApi.update(vehicleId, {
           kilometrage: parseInt(kilometrage) || undefined,
@@ -345,7 +335,6 @@ export function NewVehiclePage() {
         });
       }
       
-      // Step 4 → 5: Update with ad
       if (currentStep === 4 && vehicleId && editedTitle && editedDesc) {
         await vehicleApi.update(vehicleId, {
           annonce_titre: editedTitle,
@@ -357,7 +346,6 @@ export function NewVehiclePage() {
       setCurrentStep(currentStep + 1);
     } catch (err) {
       console.error('Failed to save vehicle:', err);
-      // Continue anyway, don't block the flow
       setCurrentStep(currentStep + 1);
     }
   };
@@ -377,36 +365,36 @@ export function NewVehiclePage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-4xl mx-auto animate-fade-in">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="rounded-full text-white/60">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Nouveau véhicule</h1>
-          <p className="text-muted-foreground">Étape {currentStep} sur 5</p>
+          <h1 className="text-2xl font-bold text-white">Nouveau véhicule</h1>
+          <p className="text-white/40">Étape {currentStep} sur 5</p>
         </div>
       </div>
 
       {/* Progress Steps */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between glass-card p-4">
         {steps.map((step, i) => (
           <div key={step.id} className="flex items-center">
             <div
               className={cn(
                 'flex flex-col items-center',
-                currentStep >= step.id ? 'text-primary' : 'text-muted-foreground'
+                currentStep >= step.id ? 'text-ios-blue' : 'text-white/20'
               )}
             >
               <div
                 className={cn(
-                  'h-10 w-10 rounded-full flex items-center justify-center mb-1 transition-colors',
+                  'h-10 w-10 rounded-2xl flex items-center justify-center mb-1 transition-all',
                   currentStep > step.id
-                    ? 'bg-primary text-primary-foreground'
+                    ? 'bg-ios-blue text-white shadow-[0_2px_12px_rgba(0,122,255,0.4)]'
                     : currentStep === step.id
-                    ? 'bg-primary/20 text-primary border-2 border-primary'
-                    : 'bg-muted'
+                    ? 'glass border-2 border-ios-blue text-ios-blue'
+                    : 'glass-subtle'
                 )}
               >
                 {currentStep > step.id ? (
@@ -420,8 +408,8 @@ export function NewVehiclePage() {
             {i < steps.length - 1 && (
               <div
                 className={cn(
-                  'h-1 w-8 sm:w-16 mx-2 rounded-full transition-colors',
-                  currentStep > step.id ? 'bg-primary' : 'bg-muted'
+                  'h-0.5 w-8 sm:w-16 mx-2 rounded-full transition-colors',
+                  currentStep > step.id ? 'bg-ios-blue' : 'bg-white/10'
                 )}
               />
             )}
@@ -431,30 +419,30 @@ export function NewVehiclePage() {
 
       {/* Step Content */}
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-6 pt-6">
           {/* Step 1: Plate */}
           {currentStep === 1 && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-xl font-semibold mb-2">Identification du véhicule</h2>
-                <p className="text-muted-foreground">
+                <h2 className="text-xl font-semibold text-white mb-2">Identification du véhicule</h2>
+                <p className="text-white/40">
                   Prenez une photo de la plaque d'immatriculation
                 </p>
               </div>
 
               {!plateDetected ? (
                 <label className="block cursor-pointer">
-                  <div className="border-2 border-dashed border-border rounded-xl p-12 text-center hover:border-primary/50 transition-colors">
+                  <div className="border-2 border-dashed border-white/10 rounded-3xl p-12 text-center hover:border-ios-blue/30 transition-colors glass-subtle">
                     {loading ? (
                       <div className="space-y-4">
-                        <Loader2 className="h-12 w-12 mx-auto text-primary animate-spin" />
-                        <p>Lecture de la plaque...</p>
+                        <Loader2 className="h-12 w-12 mx-auto text-ios-blue animate-spin" />
+                        <p className="text-white/60">Lecture de la plaque...</p>
                       </div>
                     ) : (
                       <>
-                        <Camera className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <p className="font-medium">Cliquez ou glissez une photo</p>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <Camera className="h-12 w-12 mx-auto text-white/20 mb-4" />
+                        <p className="font-medium text-white">Cliquez ou glissez une photo</p>
+                        <p className="text-sm text-white/40 mt-1">
                           La plaque sera lue automatiquement
                         </p>
                       </>
@@ -470,26 +458,26 @@ export function NewVehiclePage() {
                 </label>
               ) : vehicleInfo && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-center gap-2 text-green-600">
+                  <div className="flex items-center justify-center gap-2 text-ios-green">
                     <Check className="h-5 w-5" />
                     <span className="font-medium">Véhicule identifié</span>
                   </div>
                   
-                  <div className="p-4 rounded-xl bg-accent">
+                  <div className="p-5 rounded-2xl glass">
                     <div className="text-center mb-4">
-                      <Badge className="text-lg px-4 py-1 bg-blue-600">
+                      <Badge className="text-lg px-4 py-1.5 bg-ios-blue/20 text-ios-blue border-ios-blue/30">
                         {vehicleInfo.plaque}
                       </Badge>
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div><span className="text-muted-foreground">Marque:</span> <strong>{vehicleInfo.marque}</strong></div>
-                      <div><span className="text-muted-foreground">Modèle:</span> <strong>{vehicleInfo.modele}</strong></div>
-                      <div><span className="text-muted-foreground">Version:</span> <strong>{vehicleInfo.version}</strong></div>
-                      <div><span className="text-muted-foreground">Année:</span> <strong>{vehicleInfo.annee}</strong></div>
-                      <div><span className="text-muted-foreground">Carburant:</span> <strong>{vehicleInfo.carburant}</strong></div>
-                      <div><span className="text-muted-foreground">Boîte:</span> <strong>{vehicleInfo.boite}</strong></div>
-                      <div><span className="text-muted-foreground">Puissance:</span> <strong>{vehicleInfo.puissance}</strong></div>
-                      <div><span className="text-muted-foreground">Couleur:</span> <strong>{vehicleInfo.couleur}</strong></div>
+                      <div><span className="text-white/40">Marque:</span> <strong className="text-white">{vehicleInfo.marque}</strong></div>
+                      <div><span className="text-white/40">Modèle:</span> <strong className="text-white">{vehicleInfo.modele}</strong></div>
+                      <div><span className="text-white/40">Version:</span> <strong className="text-white">{vehicleInfo.version}</strong></div>
+                      <div><span className="text-white/40">Année:</span> <strong className="text-white">{vehicleInfo.annee}</strong></div>
+                      <div><span className="text-white/40">Carburant:</span> <strong className="text-white">{vehicleInfo.carburant}</strong></div>
+                      <div><span className="text-white/40">Boîte:</span> <strong className="text-white">{vehicleInfo.boite}</strong></div>
+                      <div><span className="text-white/40">Puissance:</span> <strong className="text-white">{vehicleInfo.puissance}</strong></div>
+                      <div><span className="text-white/40">Couleur:</span> <strong className="text-white">{vehicleInfo.couleur}</strong></div>
                     </div>
                   </div>
                   
@@ -505,18 +493,18 @@ export function NewVehiclePage() {
           {currentStep === 2 && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-xl font-semibold mb-2">Photos du véhicule</h2>
-                <p className="text-muted-foreground">
+                <h2 className="text-xl font-semibold text-white mb-2">Photos du véhicule</h2>
+                <p className="text-white/40">
                   Ajoutez jusqu'à 10 photos, nous les transformons en images pro
                 </p>
               </div>
 
               {/* Upload zone */}
               <label className="block cursor-pointer">
-                <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary/50 transition-colors">
-                  <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-                  <p className="font-medium">Ajouter des photos</p>
-                  <p className="text-sm text-muted-foreground">JPG, PNG • Max 10 photos</p>
+                <div className="border-2 border-dashed border-white/10 rounded-3xl p-8 text-center hover:border-ios-blue/30 transition-colors glass-subtle">
+                  <Upload className="h-10 w-10 mx-auto text-white/20 mb-3" />
+                  <p className="font-medium text-white">Ajouter des photos</p>
+                  <p className="text-sm text-white/40">JPG, PNG • Max 10 photos</p>
                 </div>
                 <input
                   type="file"
@@ -531,7 +519,7 @@ export function NewVehiclePage() {
               {photos.length > 0 && (
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                   {photos.map((photo, i) => (
-                    <div key={i} className="aspect-square rounded-lg bg-accent flex items-center justify-center overflow-hidden">
+                    <div key={i} className="aspect-square rounded-xl glass-subtle flex items-center justify-center overflow-hidden border border-white/10">
                       <img
                         src={URL.createObjectURL(photo)}
                         alt={`Photo ${i + 1}`}
@@ -545,17 +533,17 @@ export function NewVehiclePage() {
               {/* Background selection */}
               {photos.length > 0 && !photosProcessed && (
                 <div className="space-y-3">
-                  <p className="text-sm font-medium">Choisir un arrière-plan</p>
+                  <p className="text-sm font-medium text-white/70">Choisir un arrière-plan</p>
                   <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                     {backgrounds.map((bg) => (
                       <button
                         key={bg.name}
                         onClick={() => setSelectedBg(bg.name)}
                         className={cn(
-                          'relative aspect-video rounded-lg border-2 overflow-hidden transition-all',
+                          'relative aspect-video rounded-xl border-2 overflow-hidden transition-all',
                           selectedBg === bg.name
-                            ? 'border-primary ring-2 ring-primary/20'
-                            : 'border-border hover:border-primary/50'
+                            ? 'border-ios-blue ring-2 ring-ios-blue/20'
+                            : 'border-white/10 hover:border-white/20'
                         )}
                       >
                         <img
@@ -564,7 +552,7 @@ export function NewVehiclePage() {
                           className="w-full h-full object-cover"
                         />
                         {selectedBg === bg.name && (
-                          <div className="absolute top-1 right-1 p-0.5 rounded-full bg-primary">
+                          <div className="absolute top-1 right-1 p-0.5 rounded-full bg-ios-blue">
                             <Check className="h-3 w-3 text-white" />
                           </div>
                         )}
@@ -598,45 +586,40 @@ export function NewVehiclePage() {
 
               {photosProcessed && processedPhotos.length > 0 && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-center gap-2 text-green-600">
+                  <div className="flex items-center justify-center gap-2 text-ios-green">
                     <Check className="h-5 w-5" />
                     <span className="font-medium">{processedPhotos.length} photos traitées</span>
                   </div>
                   
-                  {/* Before/After comparison + Processed photos grid */}
                   <div className="space-y-3">
                     {processedPhotos.map((photo, i) => (
-                      <div key={i} className="rounded-xl overflow-hidden bg-accent">
-                        {/* Before/After row */}
+                      <div key={i} className="rounded-2xl overflow-hidden glass-subtle border border-white/10">
                         <div className="grid grid-cols-2 gap-1">
-                          {/* Before */}
                           <div className="relative aspect-video">
                             <img
                               src={photos[i] ? URL.createObjectURL(photos[i]) : ''}
                               alt={`Original ${i + 1}`}
                               className="w-full h-full object-cover"
                             />
-                            <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                            <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-lg">
                               Avant
                             </div>
                           </div>
-                          {/* After */}
                           <div className="relative aspect-video group">
                             <img
                               src={photo.final_url}
                               alt={`Processed ${i + 1}`}
                               className="w-full h-full object-cover"
                             />
-                            <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded">
+                            <div className="absolute top-2 left-2 bg-ios-blue/80 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-lg">
                               Après
                             </div>
-                            {/* Download/Share overlay */}
                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                               <a
                                 href={photo.final_url}
                                 download={`keroxio-${i + 1}.jpg`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="p-2 rounded-full bg-white/90 text-gray-800 hover:bg-white"
+                                className="p-2 rounded-full glass-btn text-white"
                               >
                                 <Download className="h-5 w-5" />
                               </a>
@@ -649,7 +632,7 @@ export function NewVehiclePage() {
                                       url: photo.final_url,
                                     }).catch(() => {});
                                   }}
-                                  className="p-2 rounded-full bg-white/90 text-gray-800 hover:bg-white"
+                                  className="p-2 rounded-full glass-btn text-white"
                                 >
                                   <Share2 className="h-5 w-5" />
                                 </button>
@@ -661,7 +644,6 @@ export function NewVehiclePage() {
                     ))}
                   </div>
                   
-                  {/* Download all / Share all */}
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -704,8 +686,8 @@ export function NewVehiclePage() {
           {currentStep === 3 && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-xl font-semibold mb-2">Estimation du prix</h2>
-                <p className="text-muted-foreground">
+                <h2 className="text-xl font-semibold text-white mb-2">Estimation du prix</h2>
+                <p className="text-white/40">
                   Prix suggéré basé sur le marché actuel
                 </p>
               </div>
@@ -713,15 +695,15 @@ export function NewVehiclePage() {
               {!priceEstimate ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium">Kilométrage</label>
+                    <label className="text-sm font-medium text-white/70">Kilométrage</label>
                     <input
                       type="number"
                       value={kilometrage}
                       onChange={(e) => setKilometrage(e.target.value)}
-                      className="w-full mt-1 px-4 py-3 rounded-lg bg-accent border-0 text-lg"
+                      className="w-full mt-1 px-4 py-3 rounded-2xl glass-input text-lg text-white"
                       placeholder="45000"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">en kilomètres</p>
+                    <p className="text-xs text-white/30 mt-1">en kilomètres</p>
                   </div>
                   
                   <Button className="w-full" size="lg" onClick={getEstimate} disabled={loading}>
@@ -742,42 +724,42 @@ export function NewVehiclePage() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-3 gap-4">
                     {[
-                      { label: 'Prix bas', value: priceEstimate.prix_min, color: 'text-orange-500' },
-                      { label: 'Prix moyen', value: priceEstimate.prix_moyen, color: 'text-green-500', recommended: true },
-                      { label: 'Prix haut', value: priceEstimate.prix_max, color: 'text-blue-500' },
+                      { label: 'Prix bas', value: priceEstimate.prix_min, color: 'text-ios-orange' },
+                      { label: 'Prix moyen', value: priceEstimate.prix_moyen, color: 'text-ios-green', recommended: true },
+                      { label: 'Prix haut', value: priceEstimate.prix_max, color: 'text-ios-blue' },
                     ].map((option) => (
                       <button
                         key={option.label}
                         onClick={() => setSelectedPrice(option.value)}
                         className={cn(
-                          'p-4 rounded-xl border-2 transition-all text-center',
+                          'p-4 rounded-2xl transition-all text-center',
                           selectedPrice === option.value
-                            ? 'border-primary bg-primary/10'
-                            : 'border-border hover:border-primary/50'
+                            ? 'glass border-ios-blue ring-2 ring-ios-blue/20'
+                            : 'glass-subtle hover:bg-white/8'
                         )}
                       >
-                        <p className="text-xs text-muted-foreground">{option.label}</p>
+                        <p className="text-xs text-white/40">{option.label}</p>
                         <p className={cn('text-2xl font-bold', option.color)}>
                           {option.value.toLocaleString('fr-FR')} €
                         </p>
                         {option.recommended && (
-                          <Badge className="mt-2 text-xs">Recommandé</Badge>
+                          <Badge variant="success" className="mt-2 text-xs">Recommandé</Badge>
                         )}
                       </button>
                     ))}
                   </div>
                   
-                  <div className="text-center text-sm text-muted-foreground">
+                  <div className="text-center text-sm text-white/30">
                     Basé sur {priceEstimate.comparables} annonces similaires • Source: {priceEstimate.source}
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium">Ou entrez votre prix</label>
+                    <label className="text-sm font-medium text-white/70">Ou entrez votre prix</label>
                     <input
                       type="number"
                       value={selectedPrice || ''}
                       onChange={(e) => setSelectedPrice(Number(e.target.value))}
-                      className="w-full mt-1 px-4 py-3 rounded-lg bg-accent border-0 text-lg text-center font-bold"
+                      className="w-full mt-1 px-4 py-3 rounded-2xl glass-input text-lg text-center font-bold text-white"
                     />
                   </div>
                 </div>
@@ -789,8 +771,8 @@ export function NewVehiclePage() {
           {currentStep === 4 && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-xl font-semibold mb-2">Votre annonce</h2>
-                <p className="text-muted-foreground">
+                <h2 className="text-xl font-semibold text-white mb-2">Votre annonce</h2>
+                <p className="text-white/40">
                   Texte généré automatiquement, modifiez si besoin
                 </p>
               </div>
@@ -812,28 +794,28 @@ export function NewVehiclePage() {
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium flex items-center gap-2">
+                    <label className="text-sm font-medium flex items-center gap-2 text-white/70">
                       Titre
-                      <Edit3 className="h-3 w-3 text-muted-foreground" />
+                      <Edit3 className="h-3 w-3 text-white/30" />
                     </label>
                     <input
                       type="text"
                       value={editedTitle}
                       onChange={(e) => setEditedTitle(e.target.value)}
-                      className="w-full mt-1 px-4 py-3 rounded-lg bg-accent border-0 font-medium"
+                      className="w-full mt-1 px-4 py-3 rounded-2xl glass-input font-medium text-white"
                     />
                   </div>
                   
                   <div>
-                    <label className="text-sm font-medium flex items-center gap-2">
+                    <label className="text-sm font-medium flex items-center gap-2 text-white/70">
                       Description
-                      <Edit3 className="h-3 w-3 text-muted-foreground" />
+                      <Edit3 className="h-3 w-3 text-white/30" />
                     </label>
                     <textarea
                       value={editedDesc}
                       onChange={(e) => setEditedDesc(e.target.value)}
                       rows={12}
-                      className="w-full mt-1 px-4 py-3 rounded-lg bg-accent border-0 resize-none text-sm"
+                      className="w-full mt-1 px-4 py-3 rounded-2xl glass-input resize-none text-sm text-white"
                     />
                   </div>
 
@@ -850,17 +832,17 @@ export function NewVehiclePage() {
           {currentStep === 5 && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-xl font-semibold mb-2">Publier l'annonce</h2>
-                <p className="text-muted-foreground">
+                <h2 className="text-xl font-semibold text-white mb-2">Publier l'annonce</h2>
+                <p className="text-white/40">
                   Choisissez où diffuser votre annonce
                 </p>
               </div>
 
-              <div className="grid gap-4">
+              <div className="grid gap-3">
                 {[
-                  { name: 'LeBonCoin', id: 'leboncoin', url: 'https://www.leboncoin.fr/deposer-une-annonce', color: 'bg-orange-500' },
-                  { name: 'La Centrale', id: 'lacentrale', url: 'https://www.lacentrale.fr/deposer-annonce.html', color: 'bg-red-500' },
-                  { name: 'ParuVendu', id: 'paruvendu', url: 'https://www.paruvendu.fr/deposer-annonce', color: 'bg-blue-500' },
+                  { name: 'LeBonCoin', id: 'leboncoin', url: 'https://www.leboncoin.fr/deposer-une-annonce', color: 'from-orange-500 to-orange-600' },
+                  { name: 'La Centrale', id: 'lacentrale', url: 'https://www.lacentrale.fr/deposer-annonce.html', color: 'from-red-500 to-red-600' },
+                  { name: 'ParuVendu', id: 'paruvendu', url: 'https://www.paruvendu.fr/deposer-annonce', color: 'from-blue-500 to-blue-600' },
                 ].map((platform) => (
                   <a
                     key={platform.name}
@@ -868,27 +850,25 @@ export function NewVehiclePage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => {
-                      // Mark as published on this platform
                       if (vehicleId) {
                         vehicleApi.markPublished(vehicleId, platform.id).catch(console.error);
                       }
-                      // Copy ad text to clipboard
                       navigator.clipboard.writeText(`${editedTitle}\n\n${editedDesc}`);
                     }}
-                    className="flex items-center justify-between p-4 rounded-xl bg-accent hover:bg-accent/80 transition-colors"
+                    className="flex items-center justify-between p-4 rounded-2xl glass-subtle hover:bg-white/8 transition-all group"
                   >
                     <div className="flex items-center gap-3">
-                      <div className={cn('h-10 w-10 rounded-lg flex items-center justify-center text-white font-bold', platform.color)}>
+                      <div className={cn('h-10 w-10 rounded-xl bg-gradient-to-br flex items-center justify-center text-white font-bold shadow-lg', platform.color)}>
                         {platform.name[0]}
                       </div>
-                      <span className="font-medium">{platform.name}</span>
+                      <span className="font-medium text-white">{platform.name}</span>
                     </div>
-                    <ExternalLink className="h-5 w-5 text-muted-foreground" />
+                    <ExternalLink className="h-5 w-5 text-white/30 group-hover:text-white/60 transition-colors" />
                   </a>
                 ))}
               </div>
 
-              <div className="text-center text-sm text-muted-foreground">
+              <div className="text-center text-sm text-white/30">
                 Cliquez sur une plateforme pour copier le texte et ouvrir le site
               </div>
 

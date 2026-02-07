@@ -18,26 +18,27 @@ export function Button({
   ...props
 }: ButtonProps) {
   const variants = {
-    default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-    secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-    outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
-    ghost: 'hover:bg-accent hover:text-accent-foreground',
-    destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+    default: 'glass-btn-primary text-white font-medium',
+    secondary: 'glass-btn text-foreground',
+    outline: 'glass-btn text-foreground',
+    ghost: 'hover:bg-white/5 text-foreground',
+    destructive: 'bg-ios-red/80 text-white border border-ios-red/40 hover:bg-ios-red/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]',
   };
 
   const sizes = {
-    sm: 'h-8 px-3 text-xs',
-    md: 'h-10 px-4 text-sm',
-    lg: 'h-12 px-6 text-base',
-    icon: 'h-10 w-10',
+    sm: 'h-8 px-3 text-xs rounded-xl',
+    md: 'h-10 px-4 text-sm rounded-2xl',
+    lg: 'h-12 px-6 text-base rounded-2xl',
+    icon: 'h-10 w-10 rounded-2xl',
   };
 
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center rounded-lg font-medium transition-colors',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-        'disabled:pointer-events-none disabled:opacity-50',
+        'inline-flex items-center justify-center font-medium',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ios-blue/50',
+        'disabled:pointer-events-none disabled:opacity-40',
+        'active:scale-[0.98] transition-all duration-200',
         variants[variant],
         sizes[size],
         className

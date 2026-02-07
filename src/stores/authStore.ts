@@ -32,7 +32,7 @@ interface AuthState {
   resetOnboarding: () => void;
   // Helpers
   isPro: () => boolean;
-  isBusiness: () => boolean;
+  isProBusiness: () => boolean;
   hasCRM: () => boolean;
 }
 
